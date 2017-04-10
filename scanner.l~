@@ -31,14 +31,13 @@ return	{printf("RETURN\n");}
 
 [0-9]*\.[0-9]*	{printf("LIT_REAL\n");}
 [0-9]*		{printf("LIT_INTEGER\n");}
+\'.\'		{printf("LIT_CHAR\n");}
+\".*\"		{printf("LIT_STRING\n");}
 
 
 
-%% 
-int yywrap(void) { 
-	return 1; 
-} 
-int main(void) { 
-	yylex(); 
-	return 0; 
-} 
+%%
+int main(void) {
+	yylex();
+	return 0;
+}
