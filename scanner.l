@@ -1,7 +1,18 @@
 %{
 #include "tokens.h"
 int line;
+int running = 1;
+
+int getLineNumber(){
+	return line;
+}
+
+int isRunning(){
+	return running;
+}
 %}
+
+%x COMMENT
 
 %%
 \n	{line++;}
@@ -27,20 +38,29 @@ return	{printf("RETURN\n");}
 (!=)	{printf("NE\n");}
 (&&)	{printf("AND\n");}
 (\|\|)	{printf("OR\n");}
-[,;:\(\)\[\]{}\+\-\*/<>=!&\$#]	{printf("%s\n",yytext);}
+[,;:\(\)\[\]{}\+\-\*/<>=!&\$#]	{printf("%c\n",yytext[0]);}
 
 [0-9]*\.[0-9]*	{printf("LIT_REAL\n");}
 [0-9]*		{printf("LIT_INTEGER\n");}
 \'.\'		{printf("LIT_CHAR\n");}
 \".*\"		{printf("LIT_STRING\n");}
+"//".*
+"/*"		{BEGIN COMMENT;}
 
+<COMMENT>"*/"	{BEGIN 0;}
+<COMMENT>\n	{line++;}
+<COMMENT>.
 
+<<EOF>>		{running = 0; printf("EOF\n"); return 0;}
+[ \t\n]+
 
-%% 
-int yywrap(void) { 
-	return 1; 
-} 
+.	{printf("ERROR\n");}
+
+%%
+int yywrap(void) {
+	return 1;
+}
 int main(void) { 
-	yylex(); 
+	printf("%d\n\n",yylex()); 
 	return 0; 
 } 
