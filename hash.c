@@ -19,6 +19,7 @@ struct hashtable_s {
 typedef struct hashtable_s hashtable_t;
 
 int entries = 0;
+hashtable_t *ht_set( hashtable_t *hashtable, char *key, char *value);
 
 hashtable_t *ht_create( int size ) {
 
@@ -61,7 +62,7 @@ void ht_destroy(hashtable_t *hashtable){
 	free(hashtable);
 }
 
-hashtable *ht_rehash(hashtable_t *old, int size){
+hashtable_t *ht_rehash(hashtable_t *old, int size){
 
 	hashtable_t *new = ht_create(size);
 

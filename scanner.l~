@@ -63,4 +63,4 @@ return	{return KW_RETURN;}
 int yywrap(void) {
 	return 1;
 }
-
+#include "main.c"
