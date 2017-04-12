@@ -57,14 +57,10 @@ return	{return KW_RETURN;}
 <<EOF>>		{running = 0; printf("EOF\n"); return 0;}
 [ \t\n]+
 
-.	{printf("ERROR\n");}
+.	{return TOKEN_ERROR;}
 
 %%
 int yywrap(void) {
 	return 1;
 }
-int main(void) { 
-	ht = ht_create(100);
-	printf("%d\n\n",yylex()); 
-	return 0; 
-} 
+

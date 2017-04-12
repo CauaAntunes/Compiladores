@@ -63,8 +63,4 @@ return	{return KW_RETURN;}
 int yywrap(void) {
 	return 1;
 }
-int main(void) { 
-	ht = ht_create(100);
-	printf("%d\n\n",yylex()); 
-	return 0; 
-} 
+#include "main.c"
