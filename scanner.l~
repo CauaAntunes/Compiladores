@@ -21,7 +21,7 @@ int isRunning(){
 \n	{line++;}
 byte	{return KW_BYTE;}
 short	{return KW_SHORT;}
-long	{return KW_LONG;}
+long	{return KW_LONG;/*lol*/}
 float	{return KW_FLOAT;}
 double	{return KW_DOUBLE;}
 when	{return KW_WHEN;}
