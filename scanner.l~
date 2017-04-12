@@ -33,20 +33,20 @@ read	{return KW_READ;}
 print	{return KW_PRINT;}
 return	{return KW_RETURN;}
 
-[A-Za-z][0-9A-Za-z]* {ht_set(ht, yytext,yytext); printf("ID: %s %d	%s\n",yytext,ht_hash(ht,yytext),ht_get(ht,yytext));}
+[A-Za-z][0-9A-Za-z]* {ht_set(ht, yytext,yytext); return TK_IDENTIFIER;}
 
-(<=)	{printf("LE\n");}
-(>=)	{printf("GE\n");}
-(==)	{printf("EQ\n");}
-(!=)	{printf("NE\n");}
-(&&)	{printf("AND\n");}
-(\|\|)	{printf("OR\n");}
-[,;:\(\)\[\]{}\+\-\*/<>=!&\$#]	{printf("%c\n",yytext[0]);}
+(<=)	{return OPERATOR_LE;}
+(>=)	{return OPERATOR_GE;}
+(==)	{return OPERATOR_EQ;}
+(!=)	{return OPERATOR_NE;}
+(&&)	{return OPERATOR_AND;}
+(\|\|)	{return OPERATOR_OR;}
+[,;:\(\)\[\]{}\+\-\*/<>=!&\$#]	{return yytext[0];}
 
-[0-9]*\.[0-9]*	{ht_set(ht, yytext,yytext); printf("LIT_REAL: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
-[0-9]*		{ht_set(ht, yytext,yytext); printf("LIT_INTEGER: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
-\'.\'		{ht_set(ht, yytext,yytext); printf("LIT_CHAR: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
-\".*\"		{ht_set(ht, yytext,yytext); printf("LIT_STRING: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
+[0-9]*\.[0-9]*	{ht_set(ht, yytext,yytext); return LIT_REAL;}
+[0-9]*		{ht_set(ht, yytext,yytext); return LIT_INTEGER;}
+\'.\'		{ht_set(ht, yytext,yytext); return LIT_CHAR;}
+\".*\"		{ht_set(ht, yytext,yytext); return LIT_STRING;}
 "//".*
 "/*"		{BEGIN COMMENT;}
 

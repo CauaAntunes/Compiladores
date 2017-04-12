@@ -57,7 +57,7 @@ return	{return KW_RETURN;}
 <<EOF>>		{running = 0; printf("EOF\n"); return 0;}
 [ \t\n]+
 
-.	{printf("ERROR\n");}
+.	{return TOKEN_ERROR;}
 
 %%
 int yywrap(void) {
