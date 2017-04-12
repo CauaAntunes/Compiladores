@@ -1,5 +1,3 @@
-#define _XOPEN_SOURCE 500 /* Enable certain library functions (strdup) on linux.  See feature_test_macros(7) */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
@@ -50,7 +48,7 @@ hashtable_t *ht_create( int size ) {
 /* Hash a string for a particular hash table. */
 int ht_hash( hashtable_t *hashtable, char *key ) {
 
-	unsigned long int hashval;
+	unsigned long int hashval = 0;
 	int i = 0;
 
 	/* Convert our string to an integer */

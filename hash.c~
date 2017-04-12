@@ -1,5 +1,3 @@
-#define _XOPEN_SOURCE 500 /* Enable certain library functions (strdup) on linux.  See feature_test_macros(7) */
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <limits.h>
@@ -50,7 +48,7 @@ hashtable_t *ht_create( int size ) {
 /* Hash a string for a particular hash table. */
 int ht_hash( hashtable_t *hashtable, char *key ) {
 
-	unsigned long int hashval;
+	unsigned long int hashval = 0;
 	int i = 0;
 
 	/* Convert our string to an integer */
@@ -133,6 +131,7 @@ char *ht_get( hashtable_t *hashtable, char *key ) {
 	entry_t *pair;
 
 	bin = ht_hash( hashtable, key );
+	printf("%d %s\n", bin, key);
 
 	/* Step through the bin, looking for our value. */
 	pair = hashtable->table[ bin ];
@@ -142,28 +141,11 @@ char *ht_get( hashtable_t *hashtable, char *key ) {
 
 	/* Did we actually find anything? */
 	if( pair == NULL || pair->key == NULL || strcmp( key, pair->key ) != 0 ) {
+		printf("NULL\n");
 		return NULL;
 
 	} else {
 		return pair->value;
 	}
 	
-}
-
-
-int main( int argc, char **argv ) {
-
-	hashtable_t *hashtable = ht_create( 65536 );
-
-	ht_set( hashtable, "key1", "inky" );
-	ht_set( hashtable, "key2", "pinky" );
-	ht_set( hashtable, "key3", "blinky" );
-	ht_set( hashtable, "key4", "floyd" );
-
-	printf( "%s\n", ht_get( hashtable, "key1" ) );
-	printf( "%s\n", ht_get( hashtable, "key2" ) );
-	printf( "%s\n", ht_get( hashtable, "key3" ) );
-	printf( "%s\n", ht_get( hashtable, "key4" ) );
-
-	return 0;
 }
