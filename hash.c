@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-
+//teste
 struct entry_s {
 	char *key;
 	char *value;
