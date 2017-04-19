@@ -1,4 +1,8 @@
 int main(void) { 
+<<<<<<< HEAD
+=======
+	ht = ht_create(100);
+>>>>>>> 1e5ad5a4c78122f2f6ccd53a0411974e6abbbb74
 	printf("%d\n\n",yylex()); 
 	return 0; 
 } 

@@ -14,6 +14,9 @@ int isRunning(){
 	return running;
 }
 
+void initMe(){
+	ht = ht_create(100);
+}
 %}
 
 %x COMMENT
