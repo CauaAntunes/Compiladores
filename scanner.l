@@ -13,40 +13,44 @@ int getLineNumber(){
 int isRunning(){
 	return running;
 }
+
+void initMe(){
+	ht = ht_create(100);
+}
 %}
 
 %x COMMENT
 
 %%
 \n	{line++;}
-byte	{printf("BYTE\n");}
-short	{printf("SHORT\n");}
-long	{printf("LONG\n");}
-float	{printf("FLOAT\n");}
-double	{printf("DOUBLE\n");}
-when	{printf("WHEN\n");}
-then	{printf("THEN\n");}
-else	{printf("ELSE\n");}
-while	{printf("WHILE\n");}
-for	{printf("FOR\n");}
-read	{printf("READ\n");}
-print	{printf("PRINT\n");}
-return	{printf("RETURN\n");}
+byte	{return KW_BYTE;}
+short	{return KW_SHORT;}
+long	{return KW_LONG;/*lol*/}
+float	{return KW_FLOAT;}
+double	{return KW_DOUBLE;}
+when	{return KW_WHEN;}
+then	{return KW_THEN;}
+else	{return KW_ELSE;}
+while	{return KW_WHILE;}
+for	{return KW_FOR;}
+read	{return KW_READ;}
+print	{return KW_PRINT;}
+return	{return KW_RETURN;}
 
-[A-Za-z][0-9A-Za-z]* {ht_set(ht, yytext,yytext); printf("ID: %s %d	%s\n",yytext,ht_hash(ht,yytext),ht_get(ht,yytext));}
+[A-Za-z][0-9A-Za-z]* {ht = ht_set(ht, yytext,yytext); return TK_IDENTIFIER;}
 
-(<=)	{printf("LE\n");}
-(>=)	{printf("GE\n");}
-(==)	{printf("EQ\n");}
-(!=)	{printf("NE\n");}
-(&&)	{printf("AND\n");}
-(\|\|)	{printf("OR\n");}
-[,;:\(\)\[\]{}\+\-\*/<>=!&\$#]	{printf("%c\n",yytext[0]);}
+(<=)	{return OPERATOR_LE;}
+(>=)	{return OPERATOR_GE;}
+(==)	{return OPERATOR_EQ;}
+(!=)	{return OPERATOR_NE;}
+(&&)	{return OPERATOR_AND;}
+(\|\|)	{return OPERATOR_OR;}
+[,;:\(\)\[\]{}\+\-\*/<>=!&\$#]	{return yytext[0];}
 
-[0-9]*\.[0-9]*	{ht_set(ht, yytext,yytext); printf("LIT_REAL: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
-[0-9]*		{ht_set(ht, yytext,yytext); printf("LIT_INTEGER: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
-\'.\'		{ht_set(ht, yytext,yytext); printf("LIT_CHAR: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
-\".*\"		{ht_set(ht, yytext,yytext); printf("LIT_STRING: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
+[0-9]*\.[0-9]*	{ht = ht_set(ht, yytext,yytext); return LIT_REAL;}
+[0-9]*		{ht = ht_set(ht, yytext,yytext); return LIT_INTEGER;}
+\'.\'		{ht = ht_set(ht, yytext,yytext); return LIT_CHAR;}
+\".*\"		{ht = ht_set(ht, yytext,yytext); return LIT_STRING;}
 "//".*
 "/*"		{BEGIN COMMENT;}
 
@@ -57,14 +61,10 @@ return	{printf("RETURN\n");}
 <<EOF>>		{running = 0; printf("EOF\n"); return 0;}
 [ \t\n]+
 
-.	{printf("ERROR\n");}
+.	{return TOKEN_ERROR;}
 
 %%
 int yywrap(void) {
 	return 1;
 }
-int main(void) { 
-	ht = ht_create(100);
-	printf("%d\n\n",yylex()); 
-	return 0; 
-} 
+#include "main.c"

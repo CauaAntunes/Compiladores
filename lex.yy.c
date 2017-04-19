@@ -819,127 +819,127 @@ YY_RULE_SETUP
 case 2:
 YY_RULE_SETUP
 #line 22 "scanner.l"
-{printf("BYTE\n");}
+{return KW_BYTE;}
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
 #line 23 "scanner.l"
-{printf("SHORT\n");}
+{return KW_SHORT;}
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
 #line 24 "scanner.l"
-{printf("LONG\n");}
+{return KW_LONG;/*lol*/}
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
 #line 25 "scanner.l"
-{printf("FLOAT\n");}
+{return KW_FLOAT;}
 	YY_BREAK
 case 6:
 YY_RULE_SETUP
 #line 26 "scanner.l"
-{printf("DOUBLE\n");}
+{return KW_DOUBLE;}
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
 #line 27 "scanner.l"
-{printf("WHEN\n");}
+{return KW_WHEN;}
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
 #line 28 "scanner.l"
-{printf("THEN\n");}
+{return KW_THEN;}
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
 #line 29 "scanner.l"
-{printf("ELSE\n");}
+{return KW_ELSE;}
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
 #line 30 "scanner.l"
-{printf("WHILE\n");}
+{return KW_WHILE;}
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
 #line 31 "scanner.l"
-{printf("FOR\n");}
+{return KW_FOR;}
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
 #line 32 "scanner.l"
-{printf("READ\n");}
+{return KW_READ;}
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
 #line 33 "scanner.l"
-{printf("PRINT\n");}
+{return KW_PRINT;}
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
 #line 34 "scanner.l"
-{printf("RETURN\n");}
+{return KW_RETURN;}
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
 #line 36 "scanner.l"
-{ht_set(ht, yytext,yytext); printf("ID: %s %d	%s\n",yytext,ht_hash(ht,yytext),ht_get(ht,yytext));}
+{ht_set(ht, yytext,yytext); return TK_IDENTIFIER;}
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
 #line 38 "scanner.l"
-{printf("LE\n");}
+{return OPERATOR_LE;}
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
 #line 39 "scanner.l"
-{printf("GE\n");}
+{return OPERATOR_GE;}
 	YY_BREAK
 case 18:
 YY_RULE_SETUP
 #line 40 "scanner.l"
-{printf("EQ\n");}
+{return OPERATOR_EQ;}
 	YY_BREAK
 case 19:
 YY_RULE_SETUP
 #line 41 "scanner.l"
-{printf("NE\n");}
+{return OPERATOR_NE;}
 	YY_BREAK
 case 20:
 YY_RULE_SETUP
 #line 42 "scanner.l"
-{printf("AND\n");}
+{return OPERATOR_AND;}
 	YY_BREAK
 case 21:
 YY_RULE_SETUP
 #line 43 "scanner.l"
-{printf("OR\n");}
+{return OPERATOR_OR;}
 	YY_BREAK
 case 22:
 YY_RULE_SETUP
 #line 44 "scanner.l"
-{printf("%c\n",yytext[0]);}
+{return yytext[0];}
 	YY_BREAK
 case 23:
 YY_RULE_SETUP
 #line 46 "scanner.l"
-{ht_set(ht, yytext,yytext); printf("LIT_REAL: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
+{ht_set(ht, yytext,yytext); return LIT_REAL;}
 	YY_BREAK
 case 24:
 YY_RULE_SETUP
 #line 47 "scanner.l"
-{ht_set(ht, yytext,yytext); printf("LIT_INTEGER: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
+{ht_set(ht, yytext,yytext); return LIT_INTEGER;}
 	YY_BREAK
 case 25:
 YY_RULE_SETUP
 #line 48 "scanner.l"
-{ht_set(ht, yytext,yytext); printf("LIT_CHAR: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
+{ht_set(ht, yytext,yytext); return LIT_CHAR;}
 	YY_BREAK
 case 26:
 YY_RULE_SETUP
 #line 49 "scanner.l"
-{ht_set(ht, yytext,yytext); printf("LIT_STRING: %d	%s\n",ht_hash(ht,yytext),ht_get(ht,yytext));}
+{ht_set(ht, yytext,yytext); return LIT_STRING;}
 	YY_BREAK
 case 27:
 YY_RULE_SETUP
@@ -981,7 +981,7 @@ YY_RULE_SETUP
 case 33:
 YY_RULE_SETUP
 #line 60 "scanner.l"
-{printf("ERROR\n");}
+{return TOKEN_ERROR;}
 	YY_BREAK
 case 34:
 YY_RULE_SETUP
@@ -1990,10 +1990,5 @@ void yyfree (void * ptr )
 int yywrap(void) {
 	return 1;
 }
-int main(void) { 
-	ht = ht_create(100);
-	printf("%d\n",ht);
-	printf("%d\n\n",yylex()); 
-	return 0; 
-} 
+#include "main.c"
 
