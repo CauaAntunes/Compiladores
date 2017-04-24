@@ -1,10 +1,15 @@
 %{
+//Cauã Antunes e Gabriela Pagnoncelli
 #include "tokens.h"
 #include "hash.c"
 int line;
 int running = 1;
 
 hashtable_t *ht;
+
+void initMe(){
+    ht = ht_create(100);
+}
 
 int getLineNumber(){
 	return line;

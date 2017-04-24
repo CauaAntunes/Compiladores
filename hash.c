@@ -2,7 +2,8 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
-//teste
+//Cauã Antunes e Gabriela Pagnoncelli
+
 struct entry_s {
 	char *key;
 	char *value;

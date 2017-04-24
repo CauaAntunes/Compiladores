@@ -1,5 +1,8 @@
-int main(void) { 
-	ht = ht_create(100);
-	printf("%d\n\n",yylex()); 
-	return 0; 
-} 
+// Cauã Antunes e Gabriela Pagnoncelli
+int main(void) {
+	initMe();
+	while(isRunning())
+		printf("%d\n",yylex());
+
+	return 0;
+}

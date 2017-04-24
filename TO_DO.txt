@@ -1,4 +1,0 @@
-- retorno dos Tokens
-- tabela hash
-- separar main()
-- makefile
