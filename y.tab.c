@@ -64,8 +64,8 @@
 /* Copy the first part of user declarations.  */
 #line 1 "parser.y" /* yacc.c:339  */
 
+#include <studio.h>
 #include "scanner.l"
-#include "parser.h"
 #include "errors.h"
 
 void yyerror(const char *msg);
@@ -115,11 +115,6 @@ extern int yydebug;
 #define TK_IDENTIFIER 259
 
 /* Value type.  */
-#if ! defined YYSTYPE && ! defined YYSTYPE_IS_DECLARED
-typedef int YYSTYPE;
-# define YYSTYPE_IS_TRIVIAL 1
-# define YYSTYPE_IS_DECLARED 1
-#endif
 
 
 extern YYSTYPE yylval;
@@ -130,7 +125,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 134 "y.tab.c" /* yacc.c:358  */
+#line 129 "y.tab.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -399,7 +394,7 @@ static const yytype_uint8 yytranslate[] =
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
-       8,     9,     2,     2,     7,     2,     2,     2,     2,     2,
+       8,     9,     2,     7,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     5,
        2,     6,     2,     2,     2,     2,     2,     2,     2,     2,
        2,     2,     2,     2,     2,     2,     2,     2,     2,     2,
@@ -427,8 +422,8 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    15,    15,    17,    17,    19,    19,    19,    21,    21,
-      21,    21
+       0,    15,    15,    17,    18,    20,    21,    22,    24,    25,
+      25,    26
 };
 #endif
 
@@ -438,7 +433,7 @@ static const yytype_uint8 yyrline[] =
 static const char *const yytname[] =
 {
   "$end", "error", "$undefined", "LIT_INTEGER", "TK_IDENTIFIER", "';'",
-  "'='", "','", "'('", "')'", "$accept", "program", "cmdlist", "cmd",
+  "'='", "'+'", "'('", "')'", "$accept", "program", "cmdlist", "cmd",
   "expr", YY_NULLPTR
 };
 #endif
@@ -448,7 +443,7 @@ static const char *const yytname[] =
    (internal) symbol number NUM (which must be that of a token).  */
 static const yytype_uint16 yytoknum[] =
 {
-       0,   256,   257,   258,   259,    59,    61,    44,    40,    41
+       0,   256,   257,   258,   259,    59,    61,    43,    40,    41
 };
 # endif
 
@@ -1201,8 +1196,62 @@ yyreduce:
   YY_REDUCE_PRINT (yyn);
   switch (yyn)
     {
-      
-#line 1206 "y.tab.c" /* yacc.c:1646  */
+        case 2:
+#line 15 "parser.y" /* yacc.c:1646  */
+    {  }
+#line 1203 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 3:
+#line 17 "parser.y" /* yacc.c:1646  */
+    { }
+#line 1209 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 4:
+#line 18 "parser.y" /* yacc.c:1646  */
+    { }
+#line 1215 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 5:
+#line 20 "parser.y" /* yacc.c:1646  */
+    { }
+#line 1221 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 6:
+#line 21 "parser.y" /* yacc.c:1646  */
+    { }
+#line 1227 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 7:
+#line 22 "parser.y" /* yacc.c:1646  */
+    { }
+#line 1233 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 8:
+#line 24 "parser.y" /* yacc.c:1646  */
+    { }
+#line 1239 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 10:
+#line 25 "parser.y" /* yacc.c:1646  */
+    { }
+#line 1245 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+  case 11:
+#line 26 "parser.y" /* yacc.c:1646  */
+    { }
+#line 1251 "y.tab.c" /* yacc.c:1646  */
+    break;
+
+
+#line 1255 "y.tab.c" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -1430,7 +1479,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 24 "parser.y" /* yacc.c:1906  */
+#line 29 "parser.y" /* yacc.c:1906  */
 
 
 void InitParser()

@@ -1,24 +1,29 @@
 %{
+#include <studio.h>
 #include "scanner.l"
-#include "parser.h"
 #include "errors.h"
 
 void yyerror(const char *msg);
 
 %}
 
-%token LIT_INTEGER
-%token TK_IDENTIFIER
+%token <intergerConstant> LIT_INTEGER
+%token <identifier> TK_IDENTIFIER
 
 %%
 
-program		: cmdlist
+program		: cmdlist {  }
 		;
-cmdlist		: cmd';'cmdlist | cmd
+cmdlist		: cmd';'cmdlist { } 
+		| cmd { }
 		;
-cmd		: LIT_INTEGER | TK_IDENTIFIER'='LIT_INTEGER | '='expr
+cmd		: LIT_INTEGER { }
+		| TK_IDENTIFIER'='LIT_INTEGER { } 
+		| '='expr { }
 		;
-expr		: expr','expr|'('expr')'|LIT_INTEGER|TK_IDENTIFIER
+expr		: expr'+'expr { }
+		|'('expr')'|LIT_INTEGER { } 
+		| TK_IDENTIFIER { }
 		;	
 
 %%
