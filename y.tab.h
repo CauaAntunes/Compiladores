@@ -45,13 +45,13 @@ extern int yydebug;
 # define YYTOKENTYPE
   enum yytokentype
   {
-    LIT_INTEGER = 258,
-    TK_IDENTIFIER = 259
+    LIT_INT = 258,
+    TK_ID = 259
   };
 #endif
 /* Tokens.  */
-#define LIT_INTEGER 258
-#define TK_IDENTIFIER 259
+#define LIT_INT 258
+#define TK_ID 259
 
 /* Value type.  */
 
