@@ -2,6 +2,6 @@
 
 int main(void) {
 	initMe();
-	yyparse();
+	printf("%d\n\n",yyparse());
 	return 0;
 }

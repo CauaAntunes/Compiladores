@@ -1,15 +1,18 @@
 %{
 //Cauã Antunes e Gabriela Pagnoncelli
+#include <stdio.h>
+#include <stdlib.h>
 #include "hash.c"
+
+#ifndef YYSTYPE
+#define YYSTYPE int
+#endif
+
 #include "y.tab.h"
-int line;
+int line = 1;
 int running = 1;
 
 hashtable_t *ht;
-
-void initMe(){
-    ht = ht_create(100);
-}
 
 int getLineNumber(){
 	return line;
@@ -21,6 +24,11 @@ int isRunning(){
 
 void initMe(){
 	ht = ht_create(100);
+}
+
+void yyerror (char const *s) {
+	fprintf (stderr, "Line %d: %s\n",getLineNumber(), s);
+	exit(3);
 }
 %}
 
@@ -43,7 +51,7 @@ read	{return KW_READ;}
 print	{return KW_PRINT;}
 return	{return KW_RETURN;}
 
-[_A-Za-z][_A-Za-z0-9]* {ht = ht_set(ht, yytext,yytext); yylval.symbol = addSymbol(yytext, LIT_INTEGER ); return TK_IDENTIFIER;}
+[_A-Za-z][_A-Za-z0-9]* {ht = ht_set(ht, yytext,yytext); /*yylval.symbol = addSymbol(yytext, LIT_INTEGER );*/ return TK_IDENTIFIER;}
 
 (<=)	{return OPERATOR_LE;}
 (>=)	{return OPERATOR_GE;}
@@ -53,10 +61,10 @@ return	{return KW_RETURN;}
 (\|\|)	{return OPERATOR_OR;}
 [,;:\(\)\[\]{}\+\-\*/<>=!&\$#]	{return yytext[0];}
 
-[0-9]*\.[0-9]*	{ht = ht_set(ht, yytext,yytext); yylval.symbol = addSymbol(yytext, LIT_INTEGER ); return LIT_REAL;}
-[0-9]*		{ht = ht_set(ht, yytext,yytext); yylval.symbol = addSymbol(yytext, LIT_INTEGER ); return LIT_INTEGER;}
-\'.\'		{ht = ht_set(ht, yytext,yytext); yylval.symbol = addSymbol(yytext, LIT_INTEGER ); return LIT_CHAR;}
-\".*\"		{ht = ht_set(ht, yytext,yytext); yylval.symbol = addSymbol(yytext, LIT_INTEGER ); return LIT_STRING;}
+[0-9]*\.[0-9]*	{ht = ht_set(ht, yytext,yytext); /*yylval.symbol = addSymbol(yytext, LIT_INTEGER );*/ return LIT_REAL;}
+[0-9]*		{ht = ht_set(ht, yytext,yytext); /*yylval.symbol = addSymbol(yytext, LIT_INTEGER );*/ return LIT_INTEGER;}
+\'.\'		{ht = ht_set(ht, yytext,yytext); /*yylval.symbol = addSymbol(yytext, LIT_INTEGER );*/ return LIT_CHAR;}
+\"[^\"\n]*\"		{ht = ht_set(ht, yytext,yytext); /*yylval.symbol = addSymbol(yytext, LIT_INTEGER );*/ return LIT_STRING;}
 "//".*
 "/*"		{BEGIN COMMENT;}
 
@@ -64,8 +72,8 @@ return	{return KW_RETURN;}
 <COMMENT>\n	{line++;}
 <COMMENT>.
 
-<<EOF>>		{running = 0; printf("EOF\n"); return 0;}
-[ \t\n]+
+<<EOF>>		{running = 0; return 0;}
+[ \t]+
 
 .	{return TOKEN_ERROR;}
 
