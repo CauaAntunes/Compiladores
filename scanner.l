@@ -18,6 +18,10 @@ int getLineNumber(){
 int isRunning(){
 	return running;
 }
+
+void initMe(){
+	ht = ht_create(100);
+}
 %}
 
 %x COMMENT
@@ -38,7 +42,7 @@ read	{return KW_READ;}
 print	{return KW_PRINT;}
 return	{return KW_RETURN;}
 
-[A-Za-z][0-9A-Za-z]* {ht = ht_set(ht, yytext,yytext); return TK_IDENTIFIER;}
+[_A-Za-z][_A-Za-z0-9]* {ht = ht_set(ht, yytext,yytext); return TK_IDENTIFIER;}
 
 (<=)	{return OPERATOR_LE;}
 (>=)	{return OPERATOR_GE;}
