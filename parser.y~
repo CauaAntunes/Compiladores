@@ -44,11 +44,7 @@ var		: TK_IDENTIFIER':'type litinit
 		;
 
 type		: KW_BYTE
-		|
-		|
-		|
-		|
-		;
+
 func		: TK_IDENTIFIER'('parempty')' cmd
 		;
 parempty	: param
@@ -56,6 +52,7 @@ parempty	: param
 		;
 param		: type TK_IDENTIFIER ',' param
 		| type TK_IDENTIFIER
+		
 		;
 cmdblock	: '{'cmdlist'}'
 		| '{' '}'
