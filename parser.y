@@ -17,7 +17,7 @@
 %token KW_RETURN
 %token KW_PRINT
 
-%token OPERATOR_LE
+%token OPERATOR_LE 
 %token OPERATOR_GE
 %token OPERATOR_EQ
 %token OPERATOR_NE
@@ -42,12 +42,16 @@ program		: cmdlist
 var		: TK_IDENTIFIER':'type litinit
 		| TK_IDENTIFIER':'type'['LIT_INTEGER']'
 		;
-
+litinit		: TK_IDENTIFIER
+		| LIT_INTEGER
+		| LIT_REAL
+		| LIT_CHAR
+		;
 type		: KW_BYTE
-		|
-		|
-		|
-		|
+		| KW_SHORT
+		| KW_LONG
+		| KW_FLOAT
+		| KW_DOUBLE
 		;
 func		: TK_IDENTIFIER'('parempty')' cmd
 		;
@@ -69,12 +73,24 @@ cmd		: LIT_INTEGER
 		| cmdblock
 		|
 		;
-exp		: exp'+'exp 
-		| exp'-'exp
+exp		: exp '+' exp 
+		| exp '-' exp
 		| exp '*' exp
-		| '-'exp
+		| exp '/' exp
 		| TK_IDENTIFIER
-		| LIT_INTEGER
+		| TK_IDENTIFIER '(' parempty ')'
+		| TK_IDENTIFIER '[' exp ']'
+		| exp '<' exp
+		| exp '>' exp
+		| '!' exp
+		| exp OPERATOR_LE exp
+		| exp OPERATOR_GE exp
+		| exp OPERATOR_EQ exp
+		| exp OPERATOR_NE exp
+		| exp OPERATOR_AND exp
+		| exp OPERATOR_OR exp
+		| litinit
+		| '(' exp ')'
 		;	
 
 %%
