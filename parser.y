@@ -24,11 +24,11 @@
 %token OPERATOR_AND
 %token OPERATOR_OR
 
-%token TK_IDENTIFIER
-%token LIT_INTEGER
-%token LIT_REAL
-%token LIT_CHAR
-%token LIT_STRING
+%token <symbol> TK_IDENTIFIER
+%token <symbol> LIT_INTEGER
+%token <symbol> LIT_REAL
+%token <symbol> LIT_CHAR
+%token <symbol> LIT_STRING
 
 %token TOKEN_ERROR
 
@@ -39,8 +39,8 @@
 
 program		: cmdlist 
 		;
-var		: TK_IDENTIFIER':'type litinit
-		| TK_IDENTIFIER':'type'['LIT_INTEGER']'
+var		: TK_IDENTIFIER ':' type litinit
+		| TK_IDENTIFIER ':' type '[' LIT_INTEGER ']'
 		;
 
 type		: KW_BYTE
@@ -49,7 +49,7 @@ type		: KW_BYTE
 		|
 		|
 		;
-func		: TK_IDENTIFIER'('parempty')' cmd
+func		: TK_IDENTIFIER '(' parempty ')' cmd
 		;
 parempty	: param
 		|
@@ -57,17 +57,29 @@ parempty	: param
 param		: type TK_IDENTIFIER ',' param
 		| type TK_IDENTIFIER
 		;
-cmdblock	: '{'cmdlist'}'
+cmdblock	: '{' cmdlist '}'
 		| '{' '}'
 		;
-cmdlist		: cmd';'cmdlist
-		| cmd';'
+cmdlist		: cmd ';' cmdlist
+		| cmd ';'
 		;
-cmd		: LIT_INTEGER
-		| TK_IDENTIFIER'='LIT_INTEGER
-		| '='exp
-		| cmdblock
+cmd		: cmdblock
+		| TK_IDENTIFIER '=' exp
+		| TK_IDENTIFIER '#' exp '=' exp
+		| KW_READ TK_IDENTIFIER
+		| KW_PRINT printlist
+		| KW_RETURN exp
+		| KW_WHEN '(' exp ')' KW_THEN cmd
+		| KW_WHEN '(' exp ')' KW_THEN cmd KW_ELSE cmd
+		| KW_WHILE '(' exp ')' cmd
+		| KW_FOR '(' TK_IDENTIFIER '=' exp KW_TO exp ')' cmd
 		|
+		;
+printlist	: printable printlist
+		| printable
+		;
+printable	: exp
+		| LIT_STRING
 		;
 exp		: exp'+'exp 
 		| exp'-'exp
