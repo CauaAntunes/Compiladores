@@ -81,35 +81,6 @@ hashtable_t *ht_rehash(hashtable_t *old, int size){
 	return new;
 }
 
-=======
-
-void ht_destroy(hashtable_t *hashtable){
-	int i;
-	for(i = 0; i < hashtable->size; i++){
-		entry_destroy(hashtable->table[i]);
-	}
-	free(hashtable->table);
-	free(hashtable);
-}
-
-hashtable_t *ht_rehash(hashtable_t *old, int size){
-
-	hashtable_t *new = ht_create(size);
-
-	int i;
-	for(i = 0; i < old->size; i++){
-		entry_t *next = old->table[i];
-		while(next != NULL){
-			if(next->key != NULL && next->value != NULL){
-				new = ht_set(new, next->key, next->value);	
-			}
-		}
-	}
-
-	ht_destroy(old);
-	return new;
-}
-
 int ht_hash( hashtable_t *hashtable, char *key ) {
 	unsigned long int hashval = 0;
 	int i;

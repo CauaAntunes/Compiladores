@@ -1,8 +1,9 @@
 // Cauã Antunes e Gabriela Pagnoncelli
+#include "y.tab.h"
+
 int main(void) {
 	initMe();
-	while(isRunning())
-		printf("%d\n",yylex());
-
+	//printf("%d\n\n",yylex());
+	yyparser();
 	return 0;
 }

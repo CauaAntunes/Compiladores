@@ -2,6 +2,7 @@
 //Cauã Antunes e Gabriela Pagnoncelli
 #include "tokens.h"
 #include "hash.c"
+#include "y.tab.h"
 int line;
 int running = 1;
 

@@ -1,29 +1,31 @@
 %{
-#include <stdio.h>
 #include "scanner.l"
-#include "errors.h"
-
-void yyerror(const char *msg);
 
 %}
 
-%token <intergerConstant> LIT_INTEGER
-%token <identifier> TK_IDENTIFIER
+%token <intergerConstant> LIT_INT
+%token <identifier> TK_ID
+
+%left '-' '+'
+%left '*' '/'
 
 %%
 
-program		: cmdlist {  }
+program		: cmdlist 
 		;
-cmdlist		: cmd';'cmdlist { } 
-		| cmd { }
+cmdlist		: cmd';'cmdlist 
+		| cmd 
 		;
-cmd		: TK_IDENTIFIER'='LIT_INTEGER { } 
-		| LIT_INTEGER { }
-		| '='expr { }
+cmd		: LIT_INT
+		| TK_ID'='LIT_INT 
+		| '='exp
 		;
-expr		: expr'+'expr { }
-		|'('expr')'|LIT_INTEGER { } 
-		| TK_IDENTIFIER { }
+exp		: exp'+'exp 
+		| exp'-'exp
+		| exp '*' exp
+		| '-'exp
+		| TK_ID
+		| LIT_INT
 		;	
 
 %%
