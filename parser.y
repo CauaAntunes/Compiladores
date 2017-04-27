@@ -72,10 +72,8 @@ param		: type TK_IDENTIFIER ',' param
 inputempty	: input
 		|
 		;
-input		: TK_IDENTIFIER ',' input
-		| litinit ',' input
-		| TK_IDENTIFIER
-		| litinit
+input		: exp ',' input
+		| exp
 		;
 cmdblock	: '{' cmdlist '}'
 		| '{' '}'
