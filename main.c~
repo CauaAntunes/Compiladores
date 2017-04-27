@@ -1,7 +1,0 @@
-// Cauã Antunes e Gabriela Pagnoncelli
-
-int main(void) {
-	initMe();
-	printf("%d\n\n",yyparse());
-	return 0;
-}

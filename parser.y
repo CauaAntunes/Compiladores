@@ -1,10 +1,8 @@
 %{
-#ifndef YYSTYPE 
-#define YYSTYPE int 
-#endif 
-
 
 %}
+
+%union{ char* symbol; }
 
 %token KW_BYTE
 %token KW_SHORT

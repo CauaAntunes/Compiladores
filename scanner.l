@@ -4,11 +4,11 @@
 #include <stdlib.h>
 #include "hash.c"
 
+#include "y.tab.h"
 #ifndef YYSTYPE
 #define YYSTYPE int
 #endif
 
-#include "y.tab.h"
 int line = 1;
 int running = 1;
 
@@ -38,7 +38,7 @@ void yyerror (char const *s) {
 \n	{line++;}
 byte	{return KW_BYTE;}
 short	{return KW_SHORT;}
-long	{return KW_LONG;/*lol*/}
+long	{return KW_LONG;}
 float	{return KW_FLOAT;}
 double	{return KW_DOUBLE;}
 when	{return KW_WHEN;}
@@ -51,7 +51,7 @@ read	{return KW_READ;}
 print	{return KW_PRINT;}
 return	{return KW_RETURN;}
 
-[_A-Za-z][_A-Za-z0-9]* {ht = ht_set(ht, yytext,yytext); /*yylval.symbol = addSymbol(yytext, LIT_INTEGER );*/ return TK_IDENTIFIER;}
+[_A-Za-z][_A-Za-z0-9]* {ht = ht_set(ht, yytext,yytext); yylval.symbol = yytext; return TK_IDENTIFIER;}
 
 (<=)	{return OPERATOR_LE;}
 (>=)	{return OPERATOR_GE;}
@@ -61,10 +61,10 @@ return	{return KW_RETURN;}
 (\|\|)	{return OPERATOR_OR;}
 [,;:\(\)\[\]{}\+\-\*/<>=!&\$#]	{return yytext[0];}
 
-[0-9]*\.[0-9]*	{ht = ht_set(ht, yytext,yytext); /*yylval.symbol = addSymbol(yytext, LIT_INTEGER );*/ return LIT_REAL;}
-[0-9]*		{ht = ht_set(ht, yytext,yytext); /*yylval.symbol = addSymbol(yytext, LIT_INTEGER );*/ return LIT_INTEGER;}
-\'.\'		{ht = ht_set(ht, yytext,yytext); /*yylval.symbol = addSymbol(yytext, LIT_INTEGER );*/ return LIT_CHAR;}
-\"[^\"\n]*\"		{ht = ht_set(ht, yytext,yytext); /*yylval.symbol = addSymbol(yytext, LIT_INTEGER );*/ return LIT_STRING;}
+[0-9]*\.[0-9]*	{ht = ht_set(ht, yytext,yytext); yylval.symbol = yytext; return LIT_REAL;}
+[0-9]*		{ht = ht_set(ht, yytext,yytext); yylval.symbol = yytext; return LIT_INTEGER;}
+\'.\'		{ht = ht_set(ht, yytext,yytext); yylval.symbol = yytext; return LIT_CHAR;}
+\"[^\"\n]*\"		{ht = ht_set(ht, yytext,yytext); yylval.symbol = yytext; return LIT_STRING;}
 "//".*
 "/*"		{BEGIN COMMENT;}
 
@@ -79,6 +79,8 @@ return	{return KW_RETURN;}
 
 %%
 int yywrap(void) {
+	running = 0;
+
 	return 1;
 }
 #include "main.c"
