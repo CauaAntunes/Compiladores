@@ -14,7 +14,6 @@ AST* create(int type, char* key, AST* son0, AST* son2, AST* son1, AST* son3);{
 	tree->son[1] = son1;
 	tree->son[2] = son2;
 	tree->son[3] = son3;
-	return tree;
 }
 
 %}
