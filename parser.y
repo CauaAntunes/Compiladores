@@ -115,7 +115,7 @@ cmd		: cmdblock
 		| KW_PRINT printlist					{$$ = create(KW_PRINT,0,$2,0,0,0);}
 		| KW_RETURN exp						{$$ = create(KW_RETURN,0,$2,0,0,0);}
 		| KW_WHEN '(' exp ')' KW_THEN cmd			{$$ = create(KW_WHEN,0,$3,$6,0,0);}
-		| KW_WHEN '(' exp ')' KW_THEN cmd KW_ELSE cmd		{$$ = create(KW_WHEN,0,$3,$6,$8,0);}
+		| KW_WHEN '(' exp ')' KW_THEN cmd KW_ELSE cmd		{$$ = create(KW_ELSE,0,$3,$6,$8,0);}
 		| KW_WHILE '(' exp ')' cmd				{$$ = create(KW_WHILE,0,$3,$5,0,0);}
 		| KW_FOR '(' id '=' exp KW_TO exp ')' cmd	{$$ = create(KW_FOR,0,$3,$5,$7,$9);}
 		|							{$$ = 0;}
@@ -153,59 +153,72 @@ void print(FILE *f,AST *tree)
 	if (tree != NULL){
 		switch (tree->type){
 			case KW_READ:	
-					fprintf(f,"read");
+					fprintf(f,"read ");
 					print(f, tree->son[0]);
 					break;
 
 			case KW_PRINT:	
-					fprintf(f,"print");
+					fprintf(f,"print ");
 					print(f, tree->son[0]);
 					break;
 
 			case KW_RETURN:
-					fprintf(f,"return");
-					fprintf(f,tree->hash_key);
+					fprintf(f,"return ");
+					print(f,tree->son[0]);
 					break;
 
 			case KW_WHEN:
-					fprintf(f,"when");
+					fprintf(f,"when (");
 					print(f, tree->son[0]);
+					fprintf(f,") then ");
+					print(f, tree->son[1]);
+					break;
+
+			case KW_ELSE:
+					fprintf(f,"when (");
+					print(f, tree->son[0]);
+					fprintf(f,") then ");
+					print(f, tree->son[1]);
+					fprintf(f," else ");
+					print(f, tree->son[2]);
 					break;
 
 			case KW_WHILE:
-					fprintf(f,"while");
+					fprintf(f,"while (");
 					print(f, tree->son[0]);
+					fprintf(f,") ");
+					print(f, tree->son[1]);
 					break;
 
 			case KW_FOR:	
-					fprintf(f,"for");
-					fprintf(f," ( ");
+					fprintf(f,"for (");
 					print(f, tree->son[0]);
 					fprintf(f," = ");
 					print(f, tree->son[1]);
+					fprintf(f," to ");
 					print(f, tree->son[2]);
-					fprintf(f," ) ");
+					fprintf(f,") ");
 					print(f, tree->son[3]);
 					break;
 
 			case KW_BYTE:
-					fprintf(f,"byte");
+					fprintf(f,"byte ");
 					break;
 
 			case KW_SHORT:
-					fprintf(f,"short");
+					fprintf(f,"short ");
 					break;
 
 			case KW_LONG:
-					fprintf(f,"long");
+					fprintf(f,"long ");
 					break;
 
 			case KW_FLOAT:
-					fprintf(f,"float");
+					fprintf(f,"float ");
 					break;
 
 			case KW_DOUBLE:
-					fprintf(f,"double");
+					fprintf(f,"double ");
 					break;
 
 			case TK_IDENTIFIER:
@@ -346,6 +359,18 @@ void print(FILE *f,AST *tree)
 			case OPERATOR_OR:
 					print(f, tree->son[0]);
 					fprintf(f, " || ");
+					print(f, tree->son[1]);
+					break;
+
+			case '>':
+					print(f, tree->son[0]);
+					fprintf(f, " > ");
+					print(f, tree->son[1]);
+					break;
+
+			case '<':
+					print(f, tree->son[0]);
+					fprintf(f, " < ");
 					print(f, tree->son[1]);
 					break;
 
