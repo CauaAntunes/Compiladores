@@ -219,24 +219,58 @@ void print(FILE *f,AST *tree)
 					break;
 
 			case VDEF:
+					print(f, tree->son[0]);
+					fprintf(f," : ");
+					print(f, tree->son[1]);
+					fprintf(f,"[");
+					print(f, tree->son[2]);
+					fprintf(f,"]");
+					if(tree->son != NULL){
+						fprintf(f," ");
+						print(f, tree->son[3]);
+					}
 					break;
 
 			case FDEF:
+					print(f, tree->son[0]);
+					fprintf(f," ");
+					print(f, tree->son[1]);
+					fprintf(f,"(");
+					print(f, tree->son[2]);
+					fprintf(f,") ");
+					print(f, tree->son[3]);
 					break;
 
 			case FPAR:
+					print(f, tree->son[0]);
+					fprintf(f," ");
+					print(f, tree->son[1]);
 					break;
 
 			case FCALL:
+					print(f, tree->son[0]);
+					fprintf(f,"(");
+					print(f, tree->son[1]);
+					fprintf(f,")");
 					break;
 
 			case '[':
+					print(f, tree->son[0]);
+					fprintf(f,"[");
+					print(f, tree->son[1]);
+					fprintf(f,"]");
 					break;
 
 			case '=':
+					print(f, tree->son[0]);
+					fprintf(f," = ");
+					print(f, tree->son[1]);
 					break;
 
 			case '#':
+					print(f, tree->son[0]);
+					fprintf(f,"#");
+					print(f, tree->son[1]);
 					break;
 
 			case ';':
@@ -253,8 +287,10 @@ void print(FILE *f,AST *tree)
 
 			case ' ':
 					print(f, tree->son[0]);
-					fprintf(f, " ");
-					print(f, tree->son[1]);
+					if(tree->son[1] != NULL){
+						fprintf(f, " ");
+						print(f, tree->son[1]);
+					}
 					break;
 
 			case OPERATOR_LE:
@@ -319,6 +355,11 @@ void print(FILE *f,AST *tree)
 					print(f, tree->son[1]);
 					break;
 
+			case '!':
+					fprintf(f, "! ");
+					print(f, tree->son[0]);
+					break;
+
 			case '(':
 					fprintf(f, "(");
 					print(f, tree->son[0]);
@@ -326,7 +367,7 @@ void print(FILE *f,AST *tree)
 					break;
 
 			case '{':
-					fprintf(f, "{");
+					fprintf(f, "{\n");
 					print(f, tree->son[0]);
 					fprintf(f, "}");
 					break;
