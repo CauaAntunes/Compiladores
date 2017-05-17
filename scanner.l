@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "hash.c"
+#include "ast.h"
 
 #include "y.tab.h"
 #ifndef YYSTYPE

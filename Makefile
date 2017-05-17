@@ -11,7 +11,7 @@ etapa2: y.tab.o lex.yy.c
 	cc y.tab.o -o etapa2 lex.yy.c
 
 y.tab.o: y.tab.c
-	cc -c y.tab.c
+	cc -c y.tab.c -w
 
 y.tab.c: parser.y
 	yacc -d parser.y

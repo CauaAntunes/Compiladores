@@ -1,17 +1,10 @@
 %{
+#include "ast.h"
 
-#define 
-
-typedef struct s_AST{
-	int type;
-	char* hash_key;
-	s_AST* son[4];		
-} AST;
-
-AST* create(int type, char* key, AST* son0, AST* son1, AST* son2, AST* son3);{
+AST* create(int type, char* key, AST* son0, AST* son1, AST* son2, AST* son3){
 	AST *tree = (AST*) calloc(1, sizeof(AST));
 	tree->type = type;
-	tree->key = key;
+	tree->hash_key = key;
 	tree->son[0] = son0;
 	tree->son[1] = son1;
 	tree->son[2] = son2;
@@ -19,25 +12,24 @@ AST* create(int type, char* key, AST* son0, AST* son1, AST* son2, AST* son3);{
 	return tree;
 }
 
-AST* create(int type, char* key, AST* son0, AST* son1, AST* son2);{
-	return create(type, key, son0, son1, son2, NULL);
-}
-
-AST* create(int type, char* key, AST* son0, AST* son1);{
-	return create(type, key, son0, son1, NULL, NULL);
-}
-
-AST* create(int type, char* key, AST* son0);{
-	return create(type, key, son0, NULL, NULL, NULL);
-}
-
-AST* create(int type, char* key);{
-	return create(type, key, NULL, NULL, NULL, NULL);
+void astPrint(AST *tree, int level)
+{
+	int i;
+	if (tree != 0){
+		for(i=0; i<level; i++)
+			printf(" ");
+		printf("%d\n", tree->type); 
+		//printf("*\n");
+		for(i=0; i < 4; i++){
+			//if(tree->son[i] != 0)
+				astPrint(tree->son[i], level+1);
+		}
+	}
 }
 
 %}
 
-%union{ char* symbol; }
+%union{ char* symbol; int num;}
 
 %token KW_BYTE
 %token KW_SHORT
@@ -77,86 +69,89 @@ AST* create(int type, char* key);{
 %left '-' '+'
 %left '*' '/'
 
-%%
+%type <num> code program def var vec litinit type func parempty param inputempty input cmdblock cmd cmdlist printlist printable exp
 
-program		: def ';' program	{$$ = create(';',NULL,$1,$3);}
-		| def ';'		{$$ = create(';',NULL,$1);}
+%%
+code		: program		{$$ = $1; ASTree = $$;}
+		;
+program		: def ';' program	{$$ = create(';',0,$1,$3,0,0);}
+		| def ';'		{$$ = create(';',0,$1,0,0,0);}
 		;
 def		: var
 		| func
 		;
-var		: TK_IDENTIFIER ':' type litinit			{$$ = create(':',NULL,create(TK_IDENTIFIER,yylval.symbol),$3,$4);}
-		| TK_IDENTIFIER ':' type '[' LIT_INTEGER ']' vec	{$$ = create(VDEF,NULL,create(TK_IDENTIFIER,yylval.symbol),$3,$5,$7);}
+var		: TK_IDENTIFIER ':' type litinit			{$$ = create(':',0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,$4,0);}
+		| TK_IDENTIFIER ':' type '[' LIT_INTEGER ']' vec	{$$ = create(VDEF,0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,create(LIT_INTEGER,yylval.symbol,0,0,0,0),$7);}
 		;
-vec		: litinit vec		{$$ = create(' ', NULL, $1, $2);}
+vec		: litinit vec		{$$ = create(' ',0,$1,$2,0,0);}
 		|			{$$ = 0;}
 		;
-litinit		: LIT_INTEGER		{create(LIT_INTEGER,yylval.symbol);}
-		| LIT_REAL		{create(LIT_REAL,yylval.symbol);}
-		| LIT_CHAR		{create(LIT_CHAR,yylval.symbol);}
+litinit		: LIT_INTEGER		{$$ = create(LIT_INTEGER,yylval.symbol,0,0,0,0);}
+		| LIT_REAL		{$$ = create(LIT_REAL,yylval.symbol,0,0,0,0);}
+		| LIT_CHAR		{$$ = create(LIT_CHAR,yylval.symbol,0,0,0,0);}
 		;
-type		: KW_BYTE		{create(KW_BYTE,NULL);}
-		| KW_SHORT		{create(KW_SHORT,NULL);}
-		| KW_LONG		{create(KW_LONG,NULL);}
-		| KW_FLOAT		{create(KW_FLOAT,NULL);}
-		| KW_DOUBLE		{create(KW_DOUBLE,NULL);}
+type		: KW_BYTE		{$$ = create(KW_BYTE,0,0,0,0,0);}
+		| KW_SHORT		{$$ = create(KW_SHORT,0,0,0,0,0);}
+		| KW_LONG		{$$ = create(KW_LONG,0,0,0,0,0);}
+		| KW_FLOAT		{$$ = create(KW_FLOAT,0,0,0,0,0);}
+		| KW_DOUBLE		{$$ = create(KW_DOUBLE,0,0,0,0,0);}
 		;
-func		: type TK_IDENTIFIER '(' parempty ')' cmd		{$$ = create(FDEF,NULL,$1,create(TK_IDENTIFIER,yylval.symbol),$4,$5);}
+func		: type TK_IDENTIFIER '(' parempty ')' cmd		{$$ = create(FDEF,0,$1,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$4,$6);}
 		;
 parempty	: param
-		|			{$$ = NULL;}
+		|			{$$ = 0;}
 		;
-param		: type TK_IDENTIFIER ',' param		{$$ = create(FPAR,NULL,create(,NULL,$1,create(TK_IDENTIFIER,yylval.symbol),$4);}
-		| type TK_IDENTIFIER			{$$ = create(FPAR,NULL,$1,create(TK_IDENTIFIER,yylval.symbol));}
+param		: type TK_IDENTIFIER ',' param		{$$ = create(',',0,create(FPAR,0,$1,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),0,0),$4,0,0);}
+		| type TK_IDENTIFIER			{$$ = create(FPAR,0,$1,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),0,0);}
 		;
 inputempty	: input
-		|			{$$ = NULL;}
+		|			{$$ = 0;}
 		;
-input		: exp ',' input		{$$ = create(',',NULL,$1,$3);}
+input		: exp ',' input		{$$ = create(',',0,$1,$3,0,0);}
 		| exp
 		;
-cmdblock	: '{' cmdlist '}' 	{$$ = create('{',NULL,$2);}
-		| '{' '}'		{$$ = create('{',NULL);}
+cmdblock	: '{' cmdlist '}' 	{$$ = create('{',0,$2,0,0,0);}
+		| '{' '}'		{$$ = create('{',0,0,0,0,0);}
 		;
-cmdlist		: cmd ';' cmdlist	{$$ = create(';',NULL,$1,$3);}
-		| cmd ';'		{$$ = create(';',NULL,$1);}
+cmdlist		: cmd ';' cmdlist	{$$ = create(';',0,$1,$3,0,0);}
+		| cmd ';'		{$$ = create(';',0,$1,0,0,0);}
 		;
 cmd		: cmdblock
-		| TK_IDENTIFIER '=' exp					{$$ = create ('=',NULL,create(TK_IDENTIFIER,yylval.symbol),$3);}
-		| TK_IDENTIFIER '#' exp '=' exp				{$$ = create ('=',NULL,create('#',NULL,create(TK_IDENTIFIER,yylval.symbol),$3),$5);}
-		| KW_READ TK_IDENTIFIER					{$$ = create(KW_READ,NULL,create(TK_IDENTIFIER,yylval.symbol));}
-		| KW_PRINT printlist					{$$ = create(KW_PRINT,NULL,$2);}
-		| KW_RETURN exp						{$$ = create(KW_RETURN,NULL,$2);}
-		| KW_WHEN '(' exp ')' KW_THEN cmd			{$$ = create(KW_WHEN,NULL,$3,$6);}
-		| KW_WHEN '(' exp ')' KW_THEN cmd KW_ELSE cmd		{$$ = create(KW_WHEN,NULL,$3,$6,$8);}
-		| KW_WHILE '(' exp ')' cmd				{$$ = create(KW_WHILE,NULL,$3,$5);}
-		| KW_FOR '(' TK_IDENTIFIER '=' exp KW_TO exp ')' cmd	{$$ = create(KW_FOR,NULL,create(TK_IDENTIFIER,yylval.symbol),$5,$7,$9);}
-		|
+		| TK_IDENTIFIER '=' exp					{$$ = create ('=',0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,0,0);}
+		| TK_IDENTIFIER '#' exp '=' exp				{$$ = create ('=',0,create('#',0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,0,0),$5,0,0);}
+		| KW_READ TK_IDENTIFIER					{$$ = create(KW_READ,0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),0,0,0);}
+		| KW_PRINT printlist					{$$ = create(KW_PRINT,0,$2,0,0,0);}
+		| KW_RETURN exp						{$$ = create(KW_RETURN,0,$2,0,0,0);}
+		| KW_WHEN '(' exp ')' KW_THEN cmd			{$$ = create(KW_WHEN,0,$3,$6,0,0);}
+		| KW_WHEN '(' exp ')' KW_THEN cmd KW_ELSE cmd		{$$ = create(KW_WHEN,0,$3,$6,$8,0);}
+		| KW_WHILE '(' exp ')' cmd				{$$ = create(KW_WHILE,0,$3,$5,0,0);}
+		| KW_FOR '(' TK_IDENTIFIER '=' exp KW_TO exp ')' cmd	{$$ = create(KW_FOR,0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$5,$7,$9);}
+		|							{$$ = 0;}
 		;
-printlist	: printable printlist 	{$$ = create(' ', NULL, $1, $2);}
+printlist	: printable printlist 	{$$ = create(' ', 0, $1, $2,0,0);}
 		| printable
 		;
 printable	: exp
-		| LIT_STRING		{create(LIT_STRING,yylval.symbol);}
+		| LIT_STRING		{$$ = create(LIT_STRING,yylval.symbol,0,0,0,0);}
 		;
-exp		: exp '+' exp				{$$ = create('+',NULL,$1,$3);}
-		| exp '-' exp				{$$ = create('-',NULL,$1,$3);}
-		| exp '*' exp				{$$ = create('*',NULL,$1,$3);}
-		| exp '/' exp				{$$ = create('/',NULL,$1,$3);}
-		| TK_IDENTIFIER				{$$ = create(TK_IDENTIFIER,yylval.symbol);}
-		| TK_IDENTIFIER '(' inputempty ')'	{$$ = create(FCALL,NULL,create(TK_IDENTIFIER,yylval.symbol),$3);}
-		| TK_IDENTIFIER '[' exp ']'		{$$ = create('[',NULL,create(TK_IDENTIFIER,yylval.symbol),$3);}
-		| exp '<' exp				{$$ = create('<',NULL,$1,$3);}
-		| exp '>' exp				{$$ = create('>',NULL,$1,$3);}
-		| '!' exp				{$$ = create('!',NULL,$2);}
-		| exp OPERATOR_LE exp			{$$ = create(OPERATOR_LE,NULL,$1,$3);}
-		| exp OPERATOR_GE exp			{$$ = create(OPERATOR_GE,NULL,$1,$3);}
-		| exp OPERATOR_EQ exp			{$$ = create(OPERATOR_EQ,NULL,$1,$3);}
-		| exp OPERATOR_NE exp			{$$ = create(OPERATOR_NE,NULL,$1,$3);}
-		| exp OPERATOR_AND exp			{$$ = create(OPERATOR_AND,NULL,$1,$3);}
-		| exp OPERATOR_OR exp			{$$ = create(OPERATOR_OR,NULL,$1,$3);}
+exp		: exp '+' exp				{$$ = create('+',0,$1,$3,0,0);}
+		| exp '-' exp				{$$ = create('-',0,$1,$3,0,0);}
+		| exp '*' exp				{$$ = create('*',0,$1,$3,0,0);}
+		| exp '/' exp				{$$ = create('/',0,$1,$3,0,0);}
+		| TK_IDENTIFIER				{$$ = create(TK_IDENTIFIER,yylval.symbol,0,0,0,0);}
+		| TK_IDENTIFIER '(' inputempty ')'	{$$ = create(FCALL,0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,0,0);}
+		| TK_IDENTIFIER '[' exp ']'		{$$ = create('[',0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,0,0);}
+		| exp '<' exp				{$$ = create('<',0,$1,$3,0,0);}
+		| exp '>' exp				{$$ = create('>',0,$1,$3,0,0);}
+		| '!' exp				{$$ = create('!',0,$2,0,0,0);}
+		| exp OPERATOR_LE exp			{$$ = create(OPERATOR_LE,0,$1,$3,0,0);}
+		| exp OPERATOR_GE exp			{$$ = create(OPERATOR_GE,0,$1,$3,0,0);}
+		| exp OPERATOR_EQ exp			{$$ = create(OPERATOR_EQ,0,$1,$3,0,0);}
+		| exp OPERATOR_NE exp			{$$ = create(OPERATOR_NE,0,$1,$3,0,0);}
+		| exp OPERATOR_AND exp			{$$ = create(OPERATOR_AND,0,$1,$3,0,0);}
+		| exp OPERATOR_OR exp			{$$ = create(OPERATOR_OR,0,$1,$3,0,0);}
 		| litinit
-		| '(' exp ')'				{$$ = create('(',NULL,$2);}
+		| '(' exp ')'				{$$ = create('(',0,$2,0,0,0);}
 		;	
 
 %%
