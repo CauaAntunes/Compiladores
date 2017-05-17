@@ -7,7 +7,7 @@ typedef struct s_AST{
 } AST;
 
 AST* create(int type, char* key, AST* son0, AST* son2, AST* son1, AST* son3);{
-	AST *tree = (AST*) calloc(1, sizeof(AST));
+	AST *tree = (AST*) calloc(1, sizeof(AST));		
 	tree->type = type;
 	tree->key = key;
 	tree->son[0] = son0;
@@ -15,6 +15,19 @@ AST* create(int type, char* key, AST* son0, AST* son2, AST* son1, AST* son3);{
 	tree->son[2] = son2;
 	tree->son[3] = son3;
 	return tree;
+}
+
+void astPrint(AST *tree, int level )
+{
+	int i;
+	if (tree == NULL)
+		return;
+	for(i=0; i<level; i++)
+		fprintf("	");
+        //astPrint(tree->son[i]);
+	printf("%d\n", tree->type); 
+	for(i=0; i<3; i++)
+		astPrint(tree->son[i], level+1);	
 }
 
 %}
