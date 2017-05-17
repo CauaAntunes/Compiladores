@@ -179,13 +179,7 @@ void print(FILE *f,AST *tree)
 
 			case KW_FOR:	
 					fprintf(f,"for");
-					fprintf(f," ( ");
 					print(f, tree->son[0]);
-					fprintf(f," = ");
-					print(f, tree->son[1]);
-					print(f, tree->son[2]);
-					fprintf(f," ) ");
-					print(f, tree->son[3]);
 					break;
 
 			case KW_BYTE:
