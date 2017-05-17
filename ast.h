@@ -8,4 +8,4 @@ AST *ASTree;
 
 AST* create(int type, char* key, AST* son0, AST* son1, AST* son2, AST* son3);
 
-void astPrint(AST *tree, int level);
+void print(FILE *f, AST *tree);

@@ -1,30 +1,20 @@
 %{
+#include <stdio.h>
+#include <string.h>
 #include "ast.h"
 
 AST* create(int type, char* key, AST* son0, AST* son1, AST* son2, AST* son3){
 	AST *tree = (AST*) calloc(1, sizeof(AST));
 	tree->type = type;
-	tree->hash_key = key;
+	if(key == NULL)
+		tree->hash_key = NULL;
+	else
+		tree->hash_key = strdup(key);
 	tree->son[0] = son0;
 	tree->son[1] = son1;
 	tree->son[2] = son2;
 	tree->son[3] = son3;
 	return tree;
-}
-
-void astPrint(AST *tree, int level)
-{
-	int i;
-	if (tree != 0){
-		for(i=0; i<level; i++)
-			printf(" ");
-		printf("%d\n", tree->type); 
-		//printf("*\n");
-		for(i=0; i < 4; i++){
-			//if(tree->son[i] != 0)
-				astPrint(tree->son[i], level+1);
-		}
-	}
 }
 
 %}
@@ -69,7 +59,7 @@ void astPrint(AST *tree, int level)
 %left '-' '+'
 %left '*' '/'
 
-%type <num> code program def var vec litinit type func parempty param inputempty input cmdblock cmd cmdlist printlist printable exp
+%type <num> code program def var vec litinit type func parempty param inputempty input cmdblock cmd cmdlist printlist printable exp id
 
 %%
 code		: program		{$$ = $1; ASTree = $$;}
@@ -80,8 +70,10 @@ program		: def ';' program	{$$ = create(';',0,$1,$3,0,0);}
 def		: var
 		| func
 		;
-var		: TK_IDENTIFIER ':' type litinit			{$$ = create(':',0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,$4,0);}
-		| TK_IDENTIFIER ':' type '[' LIT_INTEGER ']' vec	{$$ = create(VDEF,0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,create(LIT_INTEGER,yylval.symbol,0,0,0,0),$7);}
+id		: TK_IDENTIFIER		{$$ = create(TK_IDENTIFIER,yylval.symbol,0,0,0,0);}
+		;
+var		: id ':' type litinit			{$$ = create(':',0,$1,$3,$4,0);}
+		| id ':' type '[' LIT_INTEGER ']' vec	{$$ = create(VDEF,0,$1,$3,create(LIT_INTEGER,yylval.symbol,0,0,0,0),$7);}
 		;
 vec		: litinit vec		{$$ = create(' ',0,$1,$2,0,0);}
 		|			{$$ = 0;}
@@ -96,13 +88,13 @@ type		: KW_BYTE		{$$ = create(KW_BYTE,0,0,0,0,0);}
 		| KW_FLOAT		{$$ = create(KW_FLOAT,0,0,0,0,0);}
 		| KW_DOUBLE		{$$ = create(KW_DOUBLE,0,0,0,0,0);}
 		;
-func		: type TK_IDENTIFIER '(' parempty ')' cmd		{$$ = create(FDEF,0,$1,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$4,$6);}
+func		: type id '(' parempty ')' cmd		{$$ = create(FDEF,0,$1,$2,$4,$6);}
 		;
 parempty	: param
 		|			{$$ = 0;}
 		;
-param		: type TK_IDENTIFIER ',' param		{$$ = create(',',0,create(FPAR,0,$1,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),0,0),$4,0,0);}
-		| type TK_IDENTIFIER			{$$ = create(FPAR,0,$1,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),0,0);}
+param		: type id ',' param		{$$ = create(',',0,create(FPAR,0,$1,$2,0,0),$4,0,0);}
+		| type id			{$$ = create(FPAR,0,$1,$2,0,0);}
 		;
 inputempty	: input
 		|			{$$ = 0;}
@@ -117,15 +109,15 @@ cmdlist		: cmd ';' cmdlist	{$$ = create(';',0,$1,$3,0,0);}
 		| cmd ';'		{$$ = create(';',0,$1,0,0,0);}
 		;
 cmd		: cmdblock
-		| TK_IDENTIFIER '=' exp					{$$ = create ('=',0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,0,0);}
-		| TK_IDENTIFIER '#' exp '=' exp				{$$ = create ('=',0,create('#',0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,0,0),$5,0,0);}
-		| KW_READ TK_IDENTIFIER					{$$ = create(KW_READ,0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),0,0,0);}
+		| id '=' exp					{$$ = create ('=',0,$1,$3,0,0);}
+		| id '#' exp '=' exp				{$$ = create ('=',0,create('#',0,$1,$3,0,0),$5,0,0);}
+		| KW_READ id					{$$ = create(KW_READ,0,$2,0,0,0);}
 		| KW_PRINT printlist					{$$ = create(KW_PRINT,0,$2,0,0,0);}
 		| KW_RETURN exp						{$$ = create(KW_RETURN,0,$2,0,0,0);}
 		| KW_WHEN '(' exp ')' KW_THEN cmd			{$$ = create(KW_WHEN,0,$3,$6,0,0);}
 		| KW_WHEN '(' exp ')' KW_THEN cmd KW_ELSE cmd		{$$ = create(KW_WHEN,0,$3,$6,$8,0);}
 		| KW_WHILE '(' exp ')' cmd				{$$ = create(KW_WHILE,0,$3,$5,0,0);}
-		| KW_FOR '(' TK_IDENTIFIER '=' exp KW_TO exp ')' cmd	{$$ = create(KW_FOR,0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$5,$7,$9);}
+		| KW_FOR '(' id '=' exp KW_TO exp ')' cmd	{$$ = create(KW_FOR,0,$3,$5,$7,$9);}
 		|							{$$ = 0;}
 		;
 printlist	: printable printlist 	{$$ = create(' ', 0, $1, $2,0,0);}
@@ -138,9 +130,9 @@ exp		: exp '+' exp				{$$ = create('+',0,$1,$3,0,0);}
 		| exp '-' exp				{$$ = create('-',0,$1,$3,0,0);}
 		| exp '*' exp				{$$ = create('*',0,$1,$3,0,0);}
 		| exp '/' exp				{$$ = create('/',0,$1,$3,0,0);}
-		| TK_IDENTIFIER				{$$ = create(TK_IDENTIFIER,yylval.symbol,0,0,0,0);}
-		| TK_IDENTIFIER '(' inputempty ')'	{$$ = create(FCALL,0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,0,0);}
-		| TK_IDENTIFIER '[' exp ']'		{$$ = create('[',0,create(TK_IDENTIFIER,yylval.symbol,0,0,0,0),$3,0,0);}
+		| id
+		| id '(' inputempty ')'			{$$ = create(FCALL,0,$1,$3,0,0);}
+		| id '[' exp ']'			{$$ = create('[',0,$1,$3,0,0);}
 		| exp '<' exp				{$$ = create('<',0,$1,$3,0,0);}
 		| exp '>' exp				{$$ = create('>',0,$1,$3,0,0);}
 		| '!' exp				{$$ = create('!',0,$2,0,0,0);}
@@ -155,3 +147,190 @@ exp		: exp '+' exp				{$$ = create('+',0,$1,$3,0,0);}
 		;	
 
 %%
+
+void print(FILE *f,AST *tree)
+{
+	if (tree != NULL){
+		switch (tree->type){
+			case KW_READ:
+					break;
+
+			case KW_PRINT:
+					break;
+
+			case KW_RETURN:
+					break;
+
+			case KW_WHEN:
+					break;
+
+			case KW_WHILE:
+					break;
+
+			case KW_FOR:
+					break;
+
+			case KW_BYTE:
+					fprintf(f,"byte");
+					break;
+
+			case KW_SHORT:
+					fprintf(f,"short");
+					break;
+
+			case KW_LONG:
+					fprintf(f,"long");
+					break;
+
+			case KW_FLOAT:
+					fprintf(f,"float");
+					break;
+
+			case KW_DOUBLE:
+					fprintf(f,"double");
+					break;
+
+			case TK_IDENTIFIER:
+					fprintf(f,tree->hash_key);
+					break;
+
+			case LIT_INTEGER:
+					fprintf(f,tree->hash_key);
+					break;
+
+			case LIT_REAL:
+					fprintf(f,tree->hash_key);
+					break;
+
+			case LIT_CHAR:
+					fprintf(f,tree->hash_key);
+					break;
+
+			case LIT_STRING:
+					fprintf(f,tree->hash_key);
+					break;
+
+			case ':':
+					print(f, tree->son[0]);
+					fprintf(f," : ");
+					print(f, tree->son[1]);
+					fprintf(f," ");
+					print(f, tree->son[2]);
+					break;
+
+			case VDEF:
+					break;
+
+			case FDEF:
+					break;
+
+			case FPAR:
+					break;
+
+			case FCALL:
+					break;
+
+			case '[':
+					break;
+
+			case '=':
+					break;
+
+			case '#':
+					break;
+
+			case ';':
+					print(f, tree->son[0]);
+					fprintf(f, ";\n");
+					print(f, tree->son[1]);
+					break;
+
+			case ',':
+					print(f, tree->son[0]);
+					fprintf(f, ", ");
+					print(f, tree->son[1]);
+					break;
+
+			case ' ':
+					print(f, tree->son[0]);
+					fprintf(f, " ");
+					print(f, tree->son[1]);
+					break;
+
+			case OPERATOR_LE:
+					print(f, tree->son[0]);
+					fprintf(f, " <= ");
+					print(f, tree->son[1]);
+					break;
+
+			case OPERATOR_GE:
+					print(f, tree->son[0]);
+					fprintf(f, " >= ");
+					print(f, tree->son[1]);
+					break;
+
+
+			case OPERATOR_EQ:
+					print(f, tree->son[0]);
+					fprintf(f, " == ");
+					print(f, tree->son[1]);
+					break;
+
+			case OPERATOR_NE:
+					print(f, tree->son[0]);
+					fprintf(f, " != ");
+					print(f, tree->son[1]);
+					break;
+
+
+			case OPERATOR_AND:
+					print(f, tree->son[0]);
+					fprintf(f, " && ");
+					print(f, tree->son[1]);
+					break;
+
+			case OPERATOR_OR:
+					print(f, tree->son[0]);
+					fprintf(f, " || ");
+					print(f, tree->son[1]);
+					break;
+
+			case '+':
+					print(f, tree->son[0]);
+					fprintf(f, " + ");
+					print(f, tree->son[1]);
+					break;
+
+			case '-':
+					print(f, tree->son[0]);
+					fprintf(f, " - ");
+					print(f, tree->son[1]);
+					break;
+
+			case '*':
+					print(f, tree->son[0]);
+					fprintf(f, " * ");
+					print(f, tree->son[1]);
+					break;
+
+			case '/':
+					print(f, tree->son[0]);
+					fprintf(f, " / ");
+					print(f, tree->son[1]);
+					break;
+
+			case '(':
+					fprintf(f, "(");
+					print(f, tree->son[0]);
+					fprintf(f, ")");
+					break;
+
+			case '{':
+					fprintf(f, "{");
+					print(f, tree->son[0]);
+					fprintf(f, "}");
+					break;
+
+		}
+	}
+}

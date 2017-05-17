@@ -52,7 +52,7 @@ read	{return KW_READ;}
 print	{return KW_PRINT;}
 return	{return KW_RETURN;}
 
-[_A-Za-z][_A-Za-z0-9]* {ht = ht_set(ht, yytext,yytext); yylval.symbol = yytext; return TK_IDENTIFIER;}
+[_A-Za-z][_A-Za-z0-9]* {ht = ht_set(ht, yytext,yytext);  yylval.symbol = strdup(yytext); return TK_IDENTIFIER;}
 
 (<=)	{return OPERATOR_LE;}
 (>=)	{return OPERATOR_GE;}
@@ -62,10 +62,10 @@ return	{return KW_RETURN;}
 (\|\|)	{return OPERATOR_OR;}
 [,;:\(\)\[\]{}\+\-\*/<>=!&\$#]	{return yytext[0];}
 
-[0-9]*\.[0-9]*	{ht = ht_set(ht, yytext,yytext); yylval.symbol = yytext; return LIT_REAL;}
-[0-9]*		{ht = ht_set(ht, yytext,yytext); yylval.symbol = yytext; return LIT_INTEGER;}
-\'.\'		{ht = ht_set(ht, yytext,yytext); yylval.symbol = yytext; return LIT_CHAR;}
-\"[^\"\n]*\"		{ht = ht_set(ht, yytext,yytext); yylval.symbol = yytext; return LIT_STRING;}
+[0-9]*\.[0-9]*	{ht = ht_set(ht, yytext,yytext);  yylval.symbol = strdup(yytext); return LIT_REAL;}
+[0-9]*		{ht = ht_set(ht, yytext,yytext);  yylval.symbol = strdup(yytext); return LIT_INTEGER;}
+\'.\'		{ht = ht_set(ht, yytext,yytext);  yylval.symbol = strdup(yytext); return LIT_CHAR;}
+\"[^\"\n]*\"		{ht = ht_set(ht, yytext,yytext);  yylval.symbol = strdup(yytext); return LIT_STRING;}
 "//".*
 "/*"		{BEGIN COMMENT;}
 

@@ -7,7 +7,7 @@ int main(int argc, char **argv) {
 		yyin = fopen(argv[1],"r");
 		initMe();
 		yyparse();
-		astPrint(ASTree,0);
+		print(stdout,ASTree);
 	}
 	return 0;
 }
