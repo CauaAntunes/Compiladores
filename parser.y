@@ -73,7 +73,8 @@ def		: var
 id		: TK_IDENTIFIER		{$$ = create(TK_IDENTIFIER,yylval.symbol,0,0,0,0);}
 		;
 var		: id ':' type litinit			{$$ = create(':',0,$1,$3,$4,0);}
-		| id ':' type '[' LIT_INTEGER ']' vec	{$$ = create(VDEF,0,$1,$3,create(LIT_INTEGER,yylval.symbol,0,0,0,0),$7);}
+		| id ':' type '[' LIT_INTEGER 		{$$ = create(LIT_INTEGER,yylval.symbol,0,0,0,0);}
+		  ']' vec				{$$ = create(VDEF,0,$1,$3,$6,$8);}
 		;
 vec		: litinit vec		{$$ = create(' ',0,$1,$2,0,0);}
 		|			{$$ = 0;}
@@ -109,22 +110,22 @@ cmdlist		: cmd ';' cmdlist	{$$ = create(';',0,$1,$3,0,0);}
 		| cmd ';'		{$$ = create(';',0,$1,0,0,0);}
 		;
 cmd		: cmdblock
-		| id '=' exp					{$$ = create ('=',0,$1,$3,0,0);}
-		| id '#' exp '=' exp				{$$ = create ('=',0,create('#',0,$1,$3,0,0),$5,0,0);}
-		| KW_READ id					{$$ = create(KW_READ,0,$2,0,0,0);}
+		| id '=' exp						{$$ = create ('=',0,$1,$3,0,0);}
+		| id '#' exp '=' exp					{$$ = create ('=',0,create('#',0,$1,$3,0,0),$5,0,0);}
+		| KW_READ id						{$$ = create(KW_READ,0,$2,0,0,0);}
 		| KW_PRINT printlist					{$$ = create(KW_PRINT,0,$2,0,0,0);}
 		| KW_RETURN exp						{$$ = create(KW_RETURN,0,$2,0,0,0);}
 		| KW_WHEN '(' exp ')' KW_THEN cmd			{$$ = create(KW_WHEN,0,$3,$6,0,0);}
 		| KW_WHEN '(' exp ')' KW_THEN cmd KW_ELSE cmd		{$$ = create(KW_ELSE,0,$3,$6,$8,0);}
 		| KW_WHILE '(' exp ')' cmd				{$$ = create(KW_WHILE,0,$3,$5,0,0);}
-		| KW_FOR '(' id '=' exp KW_TO exp ')' cmd	{$$ = create(KW_FOR,0,$3,$5,$7,$9);}
+		| KW_FOR '(' id '=' exp KW_TO exp ')' cmd		{$$ = create(KW_FOR,0,$3,$5,$7,$9);}
 		|							{$$ = 0;}
 		;
-printlist	: printable printlist 	{$$ = create(' ', 0, $1, $2,0,0);}
+printlist	: printable printlist 			{$$ = create(' ', 0, $1, $2,0,0);}
 		| printable
 		;
 printable	: exp
-		| LIT_STRING		{$$ = create(LIT_STRING,yylval.symbol,0,0,0,0);}
+		| LIT_STRING				{$$ = create(LIT_STRING,yylval.symbol,0,0,0,0);}
 		;
 exp		: exp '+' exp				{$$ = create('+',0,$1,$3,0,0);}
 		| exp '-' exp				{$$ = create('-',0,$1,$3,0,0);}

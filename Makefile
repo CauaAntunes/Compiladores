@@ -7,8 +7,8 @@
 # and #include "main.c" in the last part of the scanner.l
 #
 
-etapa2: y.tab.o lex.yy.c
-	cc y.tab.o -o etapa2 lex.yy.c
+etapa3: y.tab.o lex.yy.c
+	cc y.tab.o -o etapa3 lex.yy.c
 
 y.tab.o: y.tab.c
 	cc -c y.tab.c -w
@@ -20,4 +20,4 @@ lex.yy.c: scanner.l
 	lex scanner.l
 
 clean:
-	rm etapa2 lex.yy.c *.o y.tab.c y.tab.h
+	rm etapa3 lex.yy.c *.o y.tab.c y.tab.h
