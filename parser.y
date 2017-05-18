@@ -59,7 +59,7 @@ AST* create(int type, char* key, AST* son0, AST* son1, AST* son2, AST* son3){
 %left '-' '+'
 %left '*' '/'
 
-%type <num> code program def var vec litinit type func parempty param inputempty input cmdblock cmd cmdlist printlist printable exp id
+%type <num> code program def var vec litinit type func parempty param inputempty input cmdblock cmd cmdlist printlist printable exp id litinteger
 
 %%
 code		: program		{$$ = $1; ASTree = $$;}
@@ -70,18 +70,19 @@ program		: def ';' program	{$$ = create(';',0,$1,$3,0,0);}
 def		: var
 		| func
 		;
-id		: TK_IDENTIFIER		{$$ = create(TK_IDENTIFIER,yylval.symbol,0,0,0,0);}
+id		: TK_IDENTIFIER		{$$ = create(TK_IDENTIFIER,$1,0,0,0,0);}
 		;
-var		: id ':' type litinit			{$$ = create(':',0,$1,$3,$4,0);}
-		| id ':' type '[' LIT_INTEGER 		{$$ = create(LIT_INTEGER,yylval.symbol,0,0,0,0);}
-		  ']' vec				{$$ = create(VDEF,0,$1,$3,$6,$8);}
+var		: id ':' type litinit				{$$ = create(':',0,$1,$3,$4,0);}
+		| id ':' type '[' litinteger ']' vec		{$$ = create(VDEF,0,$1,$3,$5,$7);}
+		;
+litinteger	: LIT_INTEGER		{$$ = create(LIT_INTEGER,$1,0,0,0,0);}
 		;
 vec		: litinit vec		{$$ = create(' ',0,$1,$2,0,0);}
 		|			{$$ = 0;}
 		;
-litinit		: LIT_INTEGER		{$$ = create(LIT_INTEGER,yylval.symbol,0,0,0,0);}
-		| LIT_REAL		{$$ = create(LIT_REAL,yylval.symbol,0,0,0,0);}
-		| LIT_CHAR		{$$ = create(LIT_CHAR,yylval.symbol,0,0,0,0);}
+litinit		: LIT_INTEGER		{$$ = create(LIT_INTEGER,$1,0,0,0,0);}
+		| LIT_REAL		{$$ = create(LIT_REAL,$1,0,0,0,0);}
+		| LIT_CHAR		{$$ = create(LIT_CHAR,$1,0,0,0,0);}
 		;
 type		: KW_BYTE		{$$ = create(KW_BYTE,0,0,0,0,0);}
 		| KW_SHORT		{$$ = create(KW_SHORT,0,0,0,0,0);}
@@ -125,7 +126,7 @@ printlist	: printable printlist 			{$$ = create(' ', 0, $1, $2,0,0);}
 		| printable
 		;
 printable	: exp
-		| LIT_STRING				{$$ = create(LIT_STRING,yylval.symbol,0,0,0,0);}
+		| LIT_STRING				{$$ = create(LIT_STRING,$1,0,0,0,0);}
 		;
 exp		: exp '+' exp				{$$ = create('+',0,$1,$3,0,0);}
 		| exp '-' exp				{$$ = create('-',0,$1,$3,0,0);}
