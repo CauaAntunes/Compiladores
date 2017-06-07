@@ -16,9 +16,22 @@ int nature(AST *tree){
 	return ht_get(ht,tree->hash_key)->nature;
 }
 
+int count(int s_type, AST *tree){
+	if(tree != NULL){
+		int r = 1;
+		while(tree->type == s_type){
+			r++;
+			tree = tree->son[1];
+		}
+		return r;
+	} else return 0;
+}
+
 int semantic(AST *tree)
 {
 	if (tree != NULL){
+		int aux, aux0, aux1, aux2;
+		entry_t *entry;
 		switch (tree->type){
 			case KW_READ:
 					semantic(tree->son[0]);
@@ -29,7 +42,7 @@ int semantic(AST *tree)
 					return COMMAND;
 
 			case KW_RETURN:
-					int aux = semantic(tree->son[0]);
+					aux = semantic(tree->son[0]);
 					if(aux == TYPE_INT || aux == TYPE_REAL)
 						return COMMAND;
 					else exit(4);
@@ -55,16 +68,16 @@ int semantic(AST *tree)
 
 			case KW_FOR:	
 					semantic(tree->son[0]);
-					int aux1 = semantic(tree->son[1]);
+					aux1 = semantic(tree->son[1]);
 					if(aux1 == TYPE_INT || aux1 == TYPE_REAL){
-						int aux2 = semantic(tree->son[2]);
+						aux2 = semantic(tree->son[2]);
 						if(aux2 == TYPE_INT || aux2 == TYPE_REAL)
 							if(tree->son[1] == NULL || semantic(tree->son[1]) == COMMAND)
 								return COMMAND;
 					}
 					exit(4);
 
-			/***** not used *****
+			/***** not needed *****
 			case KW_BYTE:
 					break;
 
@@ -79,10 +92,10 @@ int semantic(AST *tree)
 
 			case KW_DOUBLE:
 					break;
-			*********************/
+			**********************/
 
 			case TK_IDENTIFIER:
-					entry_t *entry = ht_get(ht,tree->hash_key);
+					entry = ht_get(ht,tree->hash_key);
 					if(entry->nature != NAT_VAR || !entry->declared)
 						exit(4);
 					return entry->data_type;
@@ -100,13 +113,12 @@ int semantic(AST *tree)
 					return TYPE_STR;
 
 			case ':':
-					if(nature(tree->son[0]) != NAT_VAR)
-						exit(4);
-
-					entry_t *entry = ht_get(ht, tree->son[0]->hash_key);
+					entry = ht_get(ht, tree->son[0]->hash_key);
 					if(entry->declared)
 						exit(4);
-					entry->declared = true;
+
+					entry->declared = 1;
+					entry->nature = NAT_VAR;
 
 					switch(tree->son[1]->type){
 						case KW_BYTE:
@@ -119,193 +131,192 @@ int semantic(AST *tree)
 						default: exit(4);
 					}
 
-					int aux = semantic(tree->son[2]);
+					return COMMAND;
+
+			case VDEF:
+					entry = ht_get(ht, tree->son[0]->hash_key);
+					if(entry->declared)
+						exit(4);
+
+					entry->declared = 1;
+					entry->nature = NAT_VEC;
+
+					switch(tree->son[1]->type){
+						case KW_BYTE:
+						case KW_SHORT:
+						case KW_LONG:
+							entry->data_type = TYPE_INT;
+						case KW_FLOAT:
+						case KW_DOUBLE:
+							entry->data_type = TYPE_REAL;
+						default: exit(4);
+					}
+
+					int vlen = atoi(ht_get(ht, tree->son[2]->hash_key)->value);
+					if(vlen != count(' ', tree->son[3]))
+						exit(4);
+
+					return COMMAND;
+
+			case FDEF:
+					entry = ht_get(ht, tree->son[1]->hash_key);
+					if(entry->declared)
+						exit(4);
+
+					entry->declared = 1;
+					entry->nature = NAT_FUN;
+
+					switch(tree->son[0]->type){
+						case KW_BYTE:
+						case KW_SHORT:
+						case KW_LONG:
+							entry->data_type = TYPE_INT;
+						case KW_FLOAT:
+						case KW_DOUBLE:
+							entry->data_type = TYPE_REAL;
+						default: exit(4);
+					}
+
+					semantic(tree->son[2]);
+					entry->params = count(',',tree->son[2]);
+
+					if(tree->son[3]!= NULL && semantic(tree->son[3]) != COMMAND)
+						exit(4);
+
+					// Se funções puderem ter parâmetros com os mesmos nomes,
+					// temos que marcar eles como "não declarados" após analisada a função
+					return COMMAND;
+
+			case FPAR:
+					entry = ht_get(ht, tree->son[1]->hash_key);
+					if(entry->declared)
+						exit(4);
+
+					entry->declared = 1;
+					entry->nature = NAT_VAR;
+
+					switch(tree->son[0]->type){
+						case KW_BYTE:
+						case KW_SHORT:
+						case KW_LONG:
+							entry->data_type = TYPE_INT;
+						case KW_FLOAT:
+						case KW_DOUBLE:
+							entry->data_type = TYPE_REAL;
+						default: exit(4);
+					}
+
+					return entry->data_type;
+
+			case FCALL:
+					entry = ht_get(ht,tree->son[0]->hash_key);
+					if(entry->nature != NAT_FUN || !entry->declared)
+						exit(4);
+
+					semantic(tree->son[1]);
+					if(entry->params != count(',',tree->son[1]))
+						exit(4);
+
+					return entry->data_type;
+
+			case '[':
+					entry = ht_get(ht,tree->son[0]->hash_key);
+					if(entry->nature != NAT_VEC || !entry->declared)
+						exit(4);
+
+					if(semantic(tree->son[1]) != TYPE_INT)
+						exit(4);
+
+					return entry->data_type;
+
+			case '=':
+					semantic(tree->son[0]);
+					aux = semantic(tree->son[1]);
 					if(aux != TYPE_INT && aux != TYPE_REAL)
 						exit(4);
 					return COMMAND;
-			case VDEF:
-					if(nature(tree->son[0]) != NAT_VEC)
-						exit(4);
-
-					entry_t *entry = ht_get(ht, tree->son[0]->hash_key);
-					if(entry->declared)
-						exit(4);
-					entry->declared = true;
-
-					switch(tree->son[1]->type){
-						case KW_BYTE:
-						case KW_SHORT:
-						case KW_LONG:
-							entry->data_type = TYPE_INT;
-						case KW_FLOAT:
-						case KW_DOUBLE:
-							entry->data_type = TYPE_REAL;
-						default: exit(4);
-					} // TO DO
-					print(f, tree->son[0]);
-					fprintf(f," : ");
-					print(f, tree->son[1]);
-					fprintf(f,"[");
-					print(f, tree->son[2]);
-					fprintf(f,"]");
-					if(tree->son != NULL){
-						fprintf(f," ");
-						print(f, tree->son[3]);
-					}
-					break;
-
-			case FDEF:
-					print(f, tree->son[0]);
-					fprintf(f," ");
-					print(f, tree->son[1]);
-					fprintf(f,"(");
-					print(f, tree->son[2]);
-					fprintf(f,") ");
-					print(f, tree->son[3]);
-					break;
-
-			case FPAR:
-					print(f, tree->son[0]);
-					fprintf(f," ");
-					print(f, tree->son[1]);
-					break;
-
-			case FCALL:
-					print(f, tree->son[0]);
-					fprintf(f,"(");
-					print(f, tree->son[1]);
-					fprintf(f,")");
-					break;
-
-			case '[':
-					print(f, tree->son[0]);
-					fprintf(f,"[");
-					print(f, tree->son[1]);
-					fprintf(f,"]");
-					break;
-
-			case '=':
-					print(f, tree->son[0]);
-					fprintf(f," = ");
-					print(f, tree->son[1]);
-					break;
 
 			case '#':
-					print(f, tree->son[0]);
-					fprintf(f,"#");
-					print(f, tree->son[1]);
-					break;
+					entry = ht_get(ht,tree->son[0]->hash_key);
+					if(entry->nature != NAT_VEC || !entry->declared)
+						exit(4);
+
+					if(semantic(tree->son[1]) != TYPE_INT)
+						exit(4);
+
+					return entry->data_type;
 
 			case ';':
-					print(f, tree->son[0]);
-					fprintf(f, ";\n");
-					print(f, tree->son[1]);
-					break;
+					if((tree->son[0] == NULL || semantic(tree->son[0]) == COMMAND) &&
+					   (tree->son[1] == NULL || semantic(tree->son[1]) == COMMAND))
+						return COMMAND;
+					else exit(4);
 
 			case ',':
-					print(f, tree->son[0]);
-					fprintf(f, ", ");
-					print(f, tree->son[1]);
-					break;
+					aux = semantic(tree->son[0]);
+					if(aux != TYPE_INT && aux != TYPE_REAL)
+						exit(4);
+
+					aux = semantic(tree->son[1]);
+					if(aux != TYPE_INT && aux != TYPE_REAL)
+						exit(4);
+
+					return aux;
 
 			case ' ':
-					print(f, tree->son[0]);
-					if(tree->son[1] != NULL){
-						fprintf(f, " ");
-						print(f, tree->son[1]);
-					}
-					break;
+					semantic(tree->son[0]);
+					semantic(tree->son[1]);
+					return COMMAND; // Not sure o que retornar aqui
 
 			case OPERATOR_LE:
-					print(f, tree->son[0]);
-					fprintf(f, " <= ");
-					print(f, tree->son[1]);
-					break;
-
 			case OPERATOR_GE:
-					print(f, tree->son[0]);
-					fprintf(f, " >= ");
-					print(f, tree->son[1]);
-					break;
-
-
 			case OPERATOR_EQ:
-					print(f, tree->son[0]);
-					fprintf(f, " == ");
-					print(f, tree->son[1]);
-					break;
-
 			case OPERATOR_NE:
-					print(f, tree->son[0]);
-					fprintf(f, " != ");
-					print(f, tree->son[1]);
-					break;
+			case '>':
+			case '<':
+					aux = semantic(tree->son[0]);
+					if(aux != TYPE_INT && aux != TYPE_REAL)
+						exit(4);
 
+					aux = semantic(tree->son[1]);
+					if(aux != TYPE_INT && aux != TYPE_REAL)
+						exit(4);
+
+					return TYPE_BOOL;
 
 			case OPERATOR_AND:
-					print(f, tree->son[0]);
-					fprintf(f, " && ");
-					print(f, tree->son[1]);
-					break;
-
 			case OPERATOR_OR:
-					print(f, tree->son[0]);
-					fprintf(f, " || ");
-					print(f, tree->son[1]);
-					break;
-
-			case '>':
-					print(f, tree->son[0]);
-					fprintf(f, " > ");
-					print(f, tree->son[1]);
-					break;
-
-			case '<':
-					print(f, tree->son[0]);
-					fprintf(f, " < ");
-					print(f, tree->son[1]);
-					break;
+					if(semantic(tree->son[0]) != TYPE_BOOL || semantic(tree->son[1]) != TYPE_BOOL)
+						exit(4);
+					else return TYPE_BOOL;
 
 			case '+':
-					print(f, tree->son[0]);
-					fprintf(f, " + ");
-					print(f, tree->son[1]);
-					break;
-
 			case '-':
-					print(f, tree->son[0]);
-					fprintf(f, " - ");
-					print(f, tree->son[1]);
-					break;
-
 			case '*':
-					print(f, tree->son[0]);
-					fprintf(f, " * ");
-					print(f, tree->son[1]);
-					break;
-
 			case '/':
-					print(f, tree->son[0]);
-					fprintf(f, " / ");
-					print(f, tree->son[1]);
-					break;
+					aux0 = semantic(tree->son[0]);
+					if(aux0 != TYPE_INT && aux0 != TYPE_REAL)
+						exit(4);
+
+					aux1 = semantic(tree->son[1]);
+					if(aux1 == TYPE_INT){
+						return aux0;
+					} else if (aux0 == TYPE_REAL)
+						return TYPE_REAL;
+					else exit(4);
 
 			case '!':
-					fprintf(f, "! ");
-					print(f, tree->son[0]);
-					break;
+					if(semantic(tree->son[0]) != TYPE_BOOL)
+						exit(4);
+					else return TYPE_BOOL;
 
 			case '(':
-					fprintf(f, "(");
-					print(f, tree->son[0]);
-					fprintf(f, ")");
-					break;
+					return semantic(tree->son[0]);
 
 			case '{':
-					fprintf(f, "{\n");
-					print(f, tree->son[0]);
-					fprintf(f, "}");
-					break;
+					if(semantic(tree->son[0]) != COMMAND)
+						exit(4);
+					else return COMMAND;
 
 		}
 	}

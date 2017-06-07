@@ -1,7 +1,7 @@
 // Cauã Antunes e Gabriela Pagnoncelli
 
 int main(int argc, char **argv) {
-	if (argc != 3) {
+	if (argc != 2) {
 		printf( "Invalid number of arguments.\n" );
 		return 1;
 	} else {
@@ -13,7 +13,8 @@ int main(int argc, char **argv) {
 
 		initMe();
 		yyparse();
-		print(out,ASTree);
-		return 0;
+		if(semantic(ASTree) == COMMAND)
+			return 0;
+		else return 4;
 	}
 }

@@ -15,6 +15,8 @@ int running = 1;
 
 hashtable_t *ht;
 
+#include "semantic.c"
+
 int getLineNumber(){
 	return line;
 }
@@ -62,7 +64,7 @@ return	{return KW_RETURN;}
 (\|\|)	{return OPERATOR_OR;}
 [,;:\(\)\[\]{}\+\-\*/<>=!&\$#]	{return yytext[0];}
 
-[0-9]*\.[0-9]*	{ht = ht_set(ht, yytext,yytext); ht_get(yt, yytext)->data_type = TYPE_REAL; yylval.symbol = yytext; return LIT_REAL;}
+[0-9]*\.[0-9]*	{ht = ht_set(ht, yytext,yytext); ht_get(ht, yytext)->data_type = TYPE_REAL; yylval.symbol = yytext; return LIT_REAL;}
 [0-9]*		{ht = ht_set(ht, yytext,yytext); ht_get(ht, yytext)->data_type = TYPE_INT;  yylval.symbol = yytext; return LIT_INTEGER;}
 \'.\'		{ht = ht_set(ht, yytext,yytext); ht_get(ht, yytext)->data_type = TYPE_INT; yylval.symbol = yytext; return LIT_CHAR;}
 \"[^\"\n]*\"	{ht = ht_set(ht, yytext,yytext); ht_get(ht, yytext)->data_type = TYPE_STR;  yylval.symbol = yytext; return LIT_STRING;}

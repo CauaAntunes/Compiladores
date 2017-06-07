@@ -10,7 +10,7 @@ struct entry_s {
 	int data_type;
 	char *key;
 	char *value;
-	bool declared = false;
+	int declared;
 	struct entry_s *next;
 };
 
@@ -66,6 +66,27 @@ void ht_destroy(hashtable_t *hashtable){
 	free(hashtable->table);
 	free(hashtable);
 }
+
+entry_t *ht_get( hashtable_t *hashtable, char *key ) {
+	int bin = 0;
+	entry_t *pair;
+
+	bin = ht_hash( hashtable, key );
+
+	pair = hashtable->table[ bin ];
+	while( pair != NULL && pair->key != NULL && strcmp( key, pair->key ) > 0 ) {
+		pair = pair->next;
+	}
+
+	if( pair == NULL || pair->key == NULL || strcmp( key, pair->key ) != 0 ) {
+		return NULL;
+
+	} else {
+		return pair;
+	}
+	
+}
+
 
 hashtable_t *ht_rehash(hashtable_t *old, int size){
 
@@ -145,6 +166,7 @@ hashtable_t *ht_set( hashtable_t *hashtable, char *key, char *value ) {
 
 	} else {
 		newpair = ht_newpair( key, value );
+		newpair->declared = 0;
 
 		if( next == hashtable->table[ bin ] ) {
 			entries++;
@@ -166,24 +188,3 @@ hashtable_t *ht_set( hashtable_t *hashtable, char *key, char *value ) {
 
 	return hashtable;
 }
-
-entry_t *ht_get( hashtable_t *hashtable, char *key ) {
-	int bin = 0;
-	entry_t *pair;
-
-	bin = ht_hash( hashtable, key );
-
-	pair = hashtable->table[ bin ];
-	while( pair != NULL && pair->key != NULL && strcmp( key, pair->key ) > 0 ) {
-		pair = pair->next;
-	}
-
-	if( pair == NULL || pair->key == NULL || strcmp( key, pair->key ) != 0 ) {
-		return NULL;
-
-	} else {
-		return pair;
-	}
-	
-}
-
