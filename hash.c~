@@ -78,9 +78,9 @@ hashtable_t *ht_rehash(hashtable_t *old, int size){
 			if(next->key != NULL && next->value != NULL){
 				new = ht_set(new, next->key, next->value);
 				entry_t *new_entry = ht_get(new, next->key);
-				new_entry->params = next->params;
-				new_entry->nature = next->nature;
-				new_entry->data_type = next->data_type;
+				new_entry-> params = next-> params;
+				new_entry-> nature = next-> nature;
+				new_entry-> data_type = next-> data_type;
 			}
 		}
 	}
