@@ -6,15 +6,14 @@ int main(int argc, char **argv) {
 		return 1;
 	} else {
 		yyin = fopen(argv[1],"r");
-		FILE *out = fopen(argv[2],"w");
 
-		if(out == NULL)
+		if(yyin == NULL){
+			printf("File not found.\n");
 			return 2;
+		}
 
 		initMe();
 		yyparse();
-		if(semantic(ASTree) == COMMAND)
-			return 0;
-		else return 4;
+		return checkDeclarations(ASTree);
 	}
 }

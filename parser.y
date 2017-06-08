@@ -56,8 +56,11 @@ AST* create(int type, char* key, AST* son0, AST* son1, AST* son2, AST* son3){
 %token FCALL
 %token FPAR
 
-%left '-' '+'
+%left OPERATOR_AND OPERATOR_OR
+%left '>' '<' OPERATOR_LE OPERATOR_GE OPERATOR_EQ  OPERATOR_NE
+%left '+' '-'
 %left '*' '/'
+%left '!'
 
 %type <num> code program def var vec litinit type func parempty param inputempty input cmdblock cmd cmdlist printlist printable exp id litinteger
 

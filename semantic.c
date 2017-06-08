@@ -8,23 +8,150 @@
 #define	NAT_VEC	1
 #define	NAT_FUN	2
 
-int nature(AST *tree){
-	if(tree == NULL)
-		return -1;
-	if(tree->type != TK_IDENTIFIER)
-		return -1;
-	return ht_get(ht,tree->hash_key)->nature;
-}
-
 int count(int s_type, AST *tree){
 	if(tree != NULL){
-		int r = 1;
-		while(tree->type == s_type){
+		int r = 0;
+		while(tree != NULL && tree->type == s_type){
 			r++;
 			tree = tree->son[1];
 		}
 		return r;
 	} else return 0;
+}
+
+typedef struct s_tree_list{
+	struct s_tree_list *next;
+	AST *f_params;
+	AST *f_body;
+} tree_list;
+
+void clear_params(AST *aux){
+	while(aux != NULL && aux->type == ','){
+		if(aux->son[0] != NULL && aux->son[0]->type == FPAR){
+			AST *aux0 = aux->son[0]->son[1];
+			if(aux0 != NULL){
+				entry_t *son0 = ht_get(ht,aux0->hash_key);
+				if(son0 != NULL)
+					son0->declared = 0;
+			}
+		}
+		if(aux->son[1] != NULL && aux->son[1]->type == FPAR){
+			AST *aux0 = aux->son[1]->son[1];
+			if(aux0 != NULL){
+				entry_t *son1 = ht_get(ht,aux0->hash_key);
+				if(son1 != NULL)
+					son1->declared = 0;
+			}
+		}
+		aux = aux->son[1];
+	}
+}
+
+int checkDeclarations(AST *tree){
+	tree_list *f_list = NULL;
+	AST *next;
+
+	while(tree != NULL && tree->type == ';'){
+		int i;
+		for(i = 0; i <= 1; i++)
+			if(tree->son[i] != NULL && tree->son[i]->type != ';'){
+				next = tree->son[i];
+				if (next != NULL){
+					entry_t *entry;
+					switch (next->type){
+						case ':':
+							entry = ht_get(ht, next->son[0]->hash_key);
+							if(entry->declared)
+								exit(4);
+
+							entry->declared = 1;
+							entry->nature = NAT_VAR;
+							switch(next->son[1]->type){
+								case KW_BYTE:
+								case KW_SHORT:
+								case KW_LONG:
+									entry->data_type = TYPE_INT;
+									break;
+								case KW_FLOAT:
+								case KW_DOUBLE:
+									entry->data_type = TYPE_REAL;
+									break;
+								default: exit(4);
+							}
+							break;
+
+						case VDEF:
+							entry = ht_get(ht, next->son[0]->hash_key);
+							if(entry->declared)
+								exit(4);
+
+							entry->declared = 1;
+							entry->nature = NAT_VEC;
+
+							switch(next->son[1]->type){
+								case KW_BYTE:
+								case KW_SHORT:
+								case KW_LONG:
+									entry->data_type = TYPE_INT;
+									break;
+								case KW_FLOAT:
+								case KW_DOUBLE:
+									entry->data_type = TYPE_REAL;
+									break;
+								default: exit(4);
+							}
+
+							int vlen = atoi(ht_get(ht, next->son[2]->hash_key)->value);
+
+							if(next->son[3] != NULL && vlen != count(' ', next->son[3]))
+								exit(4);
+							break;
+
+						case FDEF:
+							entry = ht_get(ht, next->son[1]->hash_key);
+							if(entry->declared)
+								exit(4);
+
+							entry->declared = 1;
+							entry->nature = NAT_FUN;
+							switch(next->son[0]->type){
+								case KW_BYTE:
+								case KW_SHORT:
+								case KW_LONG:
+									entry->data_type = TYPE_INT;
+									break;
+								case KW_FLOAT:
+								case KW_DOUBLE:
+									entry->data_type = TYPE_REAL;
+									break;
+								default: exit(4);
+							}
+
+							entry->params = count(',',next->son[2]);
+
+							tree_list *n = malloc(sizeof(tree_list));
+							n->f_params = next->son[2];
+							n->f_body = next->son[3];
+							n->next = f_list;
+							f_list = n;
+							break;
+						default: exit(4);
+					}
+				}
+		}
+		tree = tree->son[1];
+	}
+
+	while(f_list != NULL){
+		semantic(f_list->f_params);
+		if(f_list->f_body != NULL && semantic(f_list->f_body) != COMMAND)
+			exit(4);
+		clear_params(f_list->f_params);
+		tree_list *tl = f_list->next;
+		free(f_list);
+		f_list = tl;
+	}
+	return 0;
 }
 
 int semantic(AST *tree)
@@ -66,13 +193,13 @@ int semantic(AST *tree)
 							return COMMAND;
 					exit(4);
 
-			case KW_FOR:	
+			case KW_FOR:
 					semantic(tree->son[0]);
 					aux1 = semantic(tree->son[1]);
 					if(aux1 == TYPE_INT || aux1 == TYPE_REAL){
 						aux2 = semantic(tree->son[2]);
 						if(aux2 == TYPE_INT || aux2 == TYPE_REAL)
-							if(tree->son[1] == NULL || semantic(tree->son[1]) == COMMAND)
+							if(tree->son[3] == NULL || semantic(tree->son[3]) == COMMAND)
 								return COMMAND;
 					}
 					exit(4);
@@ -112,81 +239,6 @@ int semantic(AST *tree)
 			case LIT_STRING:
 					return TYPE_STR;
 
-			case ':':
-					entry = ht_get(ht, tree->son[0]->hash_key);
-					if(entry->declared)
-						exit(4);
-
-					entry->declared = 1;
-					entry->nature = NAT_VAR;
-
-					switch(tree->son[1]->type){
-						case KW_BYTE:
-						case KW_SHORT:
-						case KW_LONG:
-							entry->data_type = TYPE_INT;
-						case KW_FLOAT:
-						case KW_DOUBLE:
-							entry->data_type = TYPE_REAL;
-						default: exit(4);
-					}
-
-					return COMMAND;
-
-			case VDEF:
-					entry = ht_get(ht, tree->son[0]->hash_key);
-					if(entry->declared)
-						exit(4);
-
-					entry->declared = 1;
-					entry->nature = NAT_VEC;
-
-					switch(tree->son[1]->type){
-						case KW_BYTE:
-						case KW_SHORT:
-						case KW_LONG:
-							entry->data_type = TYPE_INT;
-						case KW_FLOAT:
-						case KW_DOUBLE:
-							entry->data_type = TYPE_REAL;
-						default: exit(4);
-					}
-
-					int vlen = atoi(ht_get(ht, tree->son[2]->hash_key)->value);
-					if(vlen != count(' ', tree->son[3]))
-						exit(4);
-
-					return COMMAND;
-
-			case FDEF:
-					entry = ht_get(ht, tree->son[1]->hash_key);
-					if(entry->declared)
-						exit(4);
-
-					entry->declared = 1;
-					entry->nature = NAT_FUN;
-
-					switch(tree->son[0]->type){
-						case KW_BYTE:
-						case KW_SHORT:
-						case KW_LONG:
-							entry->data_type = TYPE_INT;
-						case KW_FLOAT:
-						case KW_DOUBLE:
-							entry->data_type = TYPE_REAL;
-						default: exit(4);
-					}
-
-					semantic(tree->son[2]);
-					entry->params = count(',',tree->son[2]);
-
-					if(tree->son[3]!= NULL && semantic(tree->son[3]) != COMMAND)
-						exit(4);
-
-					// Se funções puderem ter parâmetros com os mesmos nomes,
-					// temos que marcar eles como "não declarados" após analisada a função
-					return COMMAND;
-
 			case FPAR:
 					entry = ht_get(ht, tree->son[1]->hash_key);
 					if(entry->declared)
@@ -200,9 +252,11 @@ int semantic(AST *tree)
 						case KW_SHORT:
 						case KW_LONG:
 							entry->data_type = TYPE_INT;
+							break;
 						case KW_FLOAT:
 						case KW_DOUBLE:
 							entry->data_type = TYPE_REAL;
+							break;
 						default: exit(4);
 					}
 
@@ -266,7 +320,7 @@ int semantic(AST *tree)
 			case ' ':
 					semantic(tree->son[0]);
 					semantic(tree->son[1]);
-					return COMMAND; // Not sure o que retornar aqui
+					return COMMAND;
 
 			case OPERATOR_LE:
 			case OPERATOR_GE:
@@ -288,7 +342,7 @@ int semantic(AST *tree)
 			case OPERATOR_OR:
 					if(semantic(tree->son[0]) != TYPE_BOOL || semantic(tree->son[1]) != TYPE_BOOL)
 						exit(4);
-					else return TYPE_BOOL;
+					return TYPE_BOOL;
 
 			case '+':
 			case '-':
@@ -314,7 +368,7 @@ int semantic(AST *tree)
 					return semantic(tree->son[0]);
 
 			case '{':
-					if(semantic(tree->son[0]) != COMMAND)
+					if(tree->son[0] != NULL && semantic(tree->son[0]) != COMMAND)
 						exit(4);
 					else return COMMAND;
 
