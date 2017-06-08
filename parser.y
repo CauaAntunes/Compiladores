@@ -1,5 +1,6 @@
 %{
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
 #include "ast.h"
 
@@ -152,7 +153,7 @@ exp		: exp '+' exp				{$$ = create('+',0,$1,$3,0,0);}
 		;	
 
 %%
-
+/*
 void print(FILE *f,AST *tree)
 {
 	if (tree != NULL){
@@ -422,4 +423,4 @@ void print(FILE *f,AST *tree)
 
 		}
 	}
-}
+}*/

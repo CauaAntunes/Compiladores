@@ -49,12 +49,19 @@ int checkDeclarations(AST *tree){
 					entry_t *entry;
 					switch (next->type){
 						case ':':
+							if(next->son[0] == NULL)
+								exit(4);
+
 							entry = ht_get(ht, next->son[0]->hash_key);
-							if(entry->declared)
+							if(entry == NULL || entry->declared)
 								exit(4);
 
 							entry->declared = 1;
 							entry->nature = NAT_VAR;
+
+							if(next->son[1] == NULL)
+								exit(4);
+
 							switch(next->son[1]->type){
 								case KW_BYTE:
 								case KW_SHORT:
@@ -70,12 +77,18 @@ int checkDeclarations(AST *tree){
 							break;
 
 						case VDEF:
+							if(next->son[0] == NULL)
+								exit(4);
+
 							entry = ht_get(ht, next->son[0]->hash_key);
-							if(entry->declared)
+							if(entry == NULL || entry->declared)
 								exit(4);
 
 							entry->declared = 1;
 							entry->nature = NAT_VEC;
+
+							if(next->son[1] == NULL)
+								exit(4);
 
 							switch(next->son[1]->type){
 								case KW_BYTE:
@@ -90,6 +103,9 @@ int checkDeclarations(AST *tree){
 								default: exit(4);
 							}
 
+							if(next->son[2] == NULL)
+								exit(4);
+
 							int vlen = atoi(ht_get(ht, next->son[2]->hash_key)->value);
 
 							if(next->son[3] != NULL && vlen != count(' ', next->son[3]))
@@ -97,12 +113,19 @@ int checkDeclarations(AST *tree){
 							break;
 
 						case FDEF:
+							if(next->son[1] == NULL)
+								exit(4);
+
 							entry = ht_get(ht, next->son[1]->hash_key);
-							if(entry->declared)
+							if(entry == NULL || entry->declared)
 								exit(4);
 
 							entry->declared = 1;
 							entry->nature = NAT_FUN;
+
+							if(next->son[0] == NULL)
+								exit(4);
+
 							switch(next->son[0]->type){
 								case KW_BYTE:
 								case KW_SHORT:
@@ -119,6 +142,11 @@ int checkDeclarations(AST *tree){
 							entry->params = count(',',next->son[2]);
 
 							tree_list *n = malloc(sizeof(tree_list));
+							if(n == NULL){
+								printf("Could not allocate memory.\n");
+								return -1;
+							}
+
 							n->f_params = next->son[2];
 							n->f_body = next->son[3];
 							n->next = f_list;
@@ -135,7 +163,7 @@ int checkDeclarations(AST *tree){
 		semantic(f_list->f_params);
 		if(f_list->f_body != NULL && semantic(f_list->f_body) != COMMAND)
 			exit(4);
-		clear_params(f_list->f_params);
+		//clear_params(f_list->f_params);
 		tree_list *tl = f_list->next;
 		free(f_list);
 		f_list = tl;
@@ -212,7 +240,7 @@ int semantic(AST *tree)
 
 			case TK_IDENTIFIER:
 					entry = ht_get(ht,tree->hash_key);
-					if(entry->nature != NAT_VAR || !entry->declared)
+					if(entry == NULL || entry->nature != NAT_VAR || !entry->declared)
 						exit(4);
 					return entry->data_type;
 
@@ -229,8 +257,11 @@ int semantic(AST *tree)
 					return TYPE_STR;
 
 			case FPAR:
+					if(tree->son[1] == NULL)
+						exit(4);
+
 					entry = ht_get(ht, tree->son[1]->hash_key);
-					if(entry->declared)
+					if(entry == NULL || entry->declared)
 						exit(4);
 
 					entry->declared = 1;
@@ -252,8 +283,11 @@ int semantic(AST *tree)
 					return entry->data_type;
 
 			case FCALL:
+					if(tree->son[0] == NULL)
+						exit(4);
+
 					entry = ht_get(ht,tree->son[0]->hash_key);
-					if(entry->nature != NAT_FUN || !entry->declared)
+					if(entry == NULL || entry->nature != NAT_FUN || !entry->declared)
 						exit(4);
 
 					semantic(tree->son[1]);
@@ -263,8 +297,11 @@ int semantic(AST *tree)
 					return entry->data_type;
 
 			case '[':
+					if(tree->son[0] == NULL)
+						exit(4);
+
 					entry = ht_get(ht,tree->son[0]->hash_key);
-					if(entry->nature != NAT_VEC || !entry->declared)
+					if(entry == NULL || entry->nature != NAT_VEC || !entry->declared)
 						exit(4);
 
 					if(semantic(tree->son[1]) != TYPE_INT)
@@ -280,8 +317,11 @@ int semantic(AST *tree)
 					return COMMAND;
 
 			case '#':
+					if(tree->son[0] == NULL)
+						exit(4);
+
 					entry = ht_get(ht,tree->son[0]->hash_key);
-					if(entry->nature != NAT_VEC || !entry->declared)
+					if(entry == NULL || entry->nature != NAT_VEC || !entry->declared)
 						exit(4);
 
 					if(semantic(tree->son[1]) != TYPE_INT)
