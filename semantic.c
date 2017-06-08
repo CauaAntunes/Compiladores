@@ -25,25 +25,14 @@ typedef struct s_tree_list{
 	AST *f_body;
 } tree_list;
 
-void clear_params(AST *aux){
-	while(aux != NULL && aux->type == ','){
-		if(aux->son[0] != NULL && aux->son[0]->type == FPAR){
-			AST *aux0 = aux->son[0]->son[1];
-			if(aux0 != NULL){
-				entry_t *son0 = ht_get(ht,aux0->hash_key);
-				if(son0 != NULL)
-					son0->declared = 0;
-			}
+void clear_params(AST *tree){
+	if(tree != NULL){
+		if(tree->type == ','){
+			clear_params(tree->son[0]);
+			clear_params(tree->son[1]);
+		} else if (tree->type == FPAR){
+			ht_get(ht,tree->son[1]->hash_key)->declared = 0;
 		}
-		if(aux->son[1] != NULL && aux->son[1]->type == FPAR){
-			AST *aux0 = aux->son[1]->son[1];
-			if(aux0 != NULL){
-				entry_t *son1 = ht_get(ht,aux0->hash_key);
-				if(son1 != NULL)
-					son1->declared = 0;
-			}
-		}
-		aux = aux->son[1];
 	}
 }
 
