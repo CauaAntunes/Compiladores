@@ -20,7 +20,7 @@ AST* create(int type, char* key, AST* son0, AST* son1, AST* son2, AST* son3){
 
 %}
 
-%union{ char* symbol; int num;}
+%union{ char* symbol; AST* tree;}
 
 %token KW_BYTE
 %token KW_SHORT
@@ -63,7 +63,7 @@ AST* create(int type, char* key, AST* son0, AST* son1, AST* son2, AST* son3){
 %left '*' '/'
 %left '!'
 
-%type <num> code program def var vec litinit type func parempty param inputempty input cmdblock cmd cmdlist printlist printable exp id litinteger
+%type <tree> code program def var vec litinit type func parempty param inputempty input cmdblock cmd cmdlist printlist printable exp id litinteger
 
 %%
 code		: program		{$$ = $1; ASTree = $$;}
