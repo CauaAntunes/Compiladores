@@ -21,7 +21,16 @@ TAC *createTAC(int type, char* op0, char* op1, char* op2){
 char *makeLabel(){
 	char lab[12];
 	sprintf(lab,"$label%d",label);
+	ht_set(ht,lab,lab);
 	label++;
+	return lab;
+}
+
+char *makeTemp(){
+	char lab[11];
+	sprintf(lab,"$temp%d",temp);
+	ht_set(ht,lab,lab);
+	temp++;
 	return lab;
 }
 
@@ -40,7 +49,25 @@ TAC *joinTAC(TAC *begin, TAC *end){
 }
 
 TAC *createTACWhen(AST *tree){
-	
+	char *end = makeLabel();
+	TAC *cond = makeTAC(tree->son[0]);
+	TAC *jmp = createTAC(TAC_JNZ, end, cond->op[0], NULL);
+	TAC *body = makeTAC(tree->son[1]);
+	TAC *lab = createTAC(TAC_LABEL, end, NULL, NULL);
+	return joinTAC(joinTAC(joinTAC(cond,jmp),body),lab);
+}
+
+TAC *createTACWhen(AST *tree){
+	char *els = makeLabel();
+	char *end = makeLabel();
+	TAC *cond = makeTAC(tree->son[0]);
+	TAC *jmp_els = createTAC(TAC_JNZ, els, cond->op[0], NULL);
+	TAC *body = makeTAC(tree->son[1]);
+	TAC *jmp_end = createTAC(TAC_JMP, end, cond->op[0], NULL);
+	TAC *lab_els = createTAC(TAC_LABEL, els, NULL, NULL);
+	TAC *body_els = makeTAC(tree->son[2]);
+	TAC *lab_end = createTAC(TAC_LABEL, end, NULL, NULL);
+	return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(cond,jmp_els),body),jmp_end),lab_els),body_els),lab_end);
 }
 
 TAC *makeTAC(AST *tree){

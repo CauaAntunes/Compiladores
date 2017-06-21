@@ -5,98 +5,100 @@ typedef struct s_TAC{
 	struct s_TAC *next;
 } TAC;
 
-TAC *geraTAC(AST *tree){
-	TAC *prev = NULL;
-	while (tree != NULL){
+int label = 0, temp = 0;
+
+TAC *createTAC(int type, char* op0, char* op1, char* op2){
+	TAC t = (TAC*) malloc(sizeof(TAC));
+	t->type = type;
+	t->op_keys[0] = op0;
+	t->op_keys[1] = op1;
+	t->op_keys[2] = op2;
+	t->prev = NULL;
+	t->next = NULL;
+	return t;
+}
+
+char *makeLabel(){
+	char lab[12];
+	sprintf(lab,"$label%d",label);
+	ht_set(ht,lab,lab);
+	label++;
+	return lab;
+}
+
+char *makeTemp(){
+	char lab[11];
+	sprintf(lab,"$temp%d",temp);
+	ht_set(ht,lab,lab);
+	temp++;
+	return lab;
+}
+
+TAC *joinTAC(TAC *begin, TAC *end){
+	if(end == NULL)
+		return begin;
+
+	if(begin == NULL)
+		return end;
+
+	TAC *aux;
+	for(aux = end; aux->prev != NULL; aux = aux->prev);
+	aux->prev = begin;
+	begin->next = aux;
+	return end;
+}
+
+TAC *createTACWhen(AST *tree){
+	char *end = makeLabel();
+	TAC *cond = makeTAC(tree->son[0]);
+	TAC *body = makeTAC(tree->son[1]);
+}
+
+TAC *makeTAC(AST *tree){
+	if (tree != NULL){
 		switch (tree->type){
 			case KW_READ:	
-					fprintf(f,"read ");
-					print(f, tree->son[0]);
 					break;
 
 			case KW_PRINT:	
-					fprintf(f,"print ");
-					print(f, tree->son[0]);
 					break;
 
 			case KW_RETURN:
-					fprintf(f,"return ");
-					print(f,tree->son[0]);
 					break;
 
 			case KW_WHEN:
-					fprintf(f,"when (");
-					print(f, tree->son[0]);
-					fprintf(f,") then ");
-					print(f, tree->son[1]);
 					break;
 
 			case KW_ELSE:
-					fprintf(f,"when (");
-					print(f, tree->son[0]);
-					fprintf(f,") then ");
-					print(f, tree->son[1]);
-					fprintf(f," else ");
-					print(f, tree->son[2]);
 					break;
 
 			case KW_WHILE:
-					fprintf(f,"while (");
-					print(f, tree->son[0]);
-					fprintf(f,") ");
-					print(f, tree->son[1]);
 					break;
 
-			case KW_FOR:	
-					fprintf(f,"for (");
-					print(f, tree->son[0]);
-					fprintf(f," = ");
-					print(f, tree->son[1]);
-					fprintf(f," to ");
-					print(f, tree->son[2]);
-					fprintf(f,") ");
-					print(f, tree->son[3]);
+			case KW_FOR:
 					break;
 
 			case KW_BYTE:
-					fprintf(f,"byte ");
 					break;
 
 			case KW_SHORT:
-					fprintf(f,"short ");
 					break;
 
 			case KW_LONG:
-					fprintf(f,"long ");
 					break;
 
 			case KW_FLOAT:
-					fprintf(f,"float ");
 					break;
 
 			case KW_DOUBLE:
-					fprintf(f,"double ");
 					break;
 
 			case TK_IDENTIFIER:
-					fprintf(f,tree->hash_key);
-					break;
-
 			case LIT_INTEGER:
-					fprintf(f,tree->hash_key);
-					break;
-
 			case LIT_REAL:
-					fprintf(f,tree->hash_key);
-					break;
-
 			case LIT_CHAR:
-					fprintf(f,tree->hash_key);
-					break;
-
 			case LIT_STRING:
-					fprintf(f,tree->hash_key);
-					break;
+					return createTAC(TAC_SYMBOL, tree->hash_key, NULL, NULL);
 
 			case ':':
 					print(f, tree->son[0]);
