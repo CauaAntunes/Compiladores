@@ -4,20 +4,13 @@
 #include <string.h>
 //Cauã Antunes e Gabriela Pagnoncelli
 
-struct s_parlist{
-	char* param;
-	struct s_parlist *next;
-};
-
 struct entry_s {
+	int params;
+	int nature;
+	int data_type;
 	char *key;
 	char *value;
 	int declared;
-	int nature;
-	int data_type;
-	int params;
-	struct s_parlist *parlist;
-	TAC *label;
 	struct entry_s *next;
 };
 

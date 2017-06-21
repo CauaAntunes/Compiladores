@@ -163,7 +163,6 @@ int checkDeclarations(AST *tree){
 									par = p;
 								else last->next = p;
 								last = p;
-								entry->parlist = par;
 							}
 
 							tree_list *n = malloc(sizeof(tree_list));
