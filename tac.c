@@ -57,7 +57,7 @@ TAC *createTACWhen(AST *tree){
 	return joinTAC(joinTAC(joinTAC(cond,jmp),body),lab);
 }
 
-TAC *createTACWhen(AST *tree){
+TAC *createTACWhenElse(AST *tree){
 	char *els = makeLabel();
 	char *end = makeLabel();
 	TAC *cond = makeTAC(tree->son[0]);
