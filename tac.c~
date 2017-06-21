@@ -1,0 +1,277 @@
+typedef struct s_TAC{
+	int type;
+	char* op_keys[3];
+	struct s_TAC *prev;
+	struct s_TAC *next;
+} TAC;
+
+TAC *geraTAC(AST *tree){
+	TAC *prev = NULL;
+	while (tree != NULL){
+		switch (tree->type){
+			case KW_READ:	
+					fprintf(f,"read ");
+					print(f, tree->son[0]);
+					break;
+
+			case KW_PRINT:	
+					fprintf(f,"print ");
+					print(f, tree->son[0]);
+					break;
+
+			case KW_RETURN:
+					fprintf(f,"return ");
+					print(f,tree->son[0]);
+					break;
+
+			case KW_WHEN:
+					fprintf(f,"when (");
+					print(f, tree->son[0]);
+					fprintf(f,") then ");
+					print(f, tree->son[1]);
+					break;
+
+			case KW_ELSE:
+					fprintf(f,"when (");
+					print(f, tree->son[0]);
+					fprintf(f,") then ");
+					print(f, tree->son[1]);
+					fprintf(f," else ");
+					print(f, tree->son[2]);
+					break;
+
+			case KW_WHILE:
+					fprintf(f,"while (");
+					print(f, tree->son[0]);
+					fprintf(f,") ");
+					print(f, tree->son[1]);
+					break;
+
+			case KW_FOR:	
+					fprintf(f,"for (");
+					print(f, tree->son[0]);
+					fprintf(f," = ");
+					print(f, tree->son[1]);
+					fprintf(f," to ");
+					print(f, tree->son[2]);
+					fprintf(f,") ");
+					print(f, tree->son[3]);
+					break;
+
+			case KW_BYTE:
+					fprintf(f,"byte ");
+					break;
+
+			case KW_SHORT:
+					fprintf(f,"short ");
+					break;
+
+			case KW_LONG:
+					fprintf(f,"long ");
+					break;
+
+			case KW_FLOAT:
+					fprintf(f,"float ");
+					break;
+
+			case KW_DOUBLE:
+					fprintf(f,"double ");
+					break;
+
+			case TK_IDENTIFIER:
+					fprintf(f,tree->hash_key);
+					break;
+
+			case LIT_INTEGER:
+					fprintf(f,tree->hash_key);
+					break;
+
+			case LIT_REAL:
+					fprintf(f,tree->hash_key);
+					break;
+
+			case LIT_CHAR:
+					fprintf(f,tree->hash_key);
+					break;
+
+			case LIT_STRING:
+					fprintf(f,tree->hash_key);
+					break;
+
+			case ':':
+					print(f, tree->son[0]);
+					fprintf(f," : ");
+					print(f, tree->son[1]);
+					fprintf(f," ");
+					print(f, tree->son[2]);
+					break;
+
+			case VDEF:
+					print(f, tree->son[0]);
+					fprintf(f," : ");
+					print(f, tree->son[1]);
+					fprintf(f,"[");
+					print(f, tree->son[2]);
+					fprintf(f,"]");
+					if(tree->son != NULL){
+						fprintf(f," ");
+						print(f, tree->son[3]);
+					}
+					break;
+
+			case FDEF:
+					print(f, tree->son[0]);
+					fprintf(f," ");
+					print(f, tree->son[1]);
+					fprintf(f,"(");
+					print(f, tree->son[2]);
+					fprintf(f,") ");
+					print(f, tree->son[3]);
+					break;
+
+			case FPAR:
+					print(f, tree->son[0]);
+					fprintf(f," ");
+					print(f, tree->son[1]);
+					break;
+
+			case FCALL:
+					print(f, tree->son[0]);
+					fprintf(f,"(");
+					print(f, tree->son[1]);
+					fprintf(f,")");
+					break;
+
+			case '[':
+					print(f, tree->son[0]);
+					fprintf(f,"[");
+					print(f, tree->son[1]);
+					fprintf(f,"]");
+					break;
+
+			case '=':
+					print(f, tree->son[0]);
+					fprintf(f," = ");
+					print(f, tree->son[1]);
+					break;
+
+			case '#':
+					print(f, tree->son[0]);
+					fprintf(f,"#");
+					print(f, tree->son[1]);
+					break;
+
+			case ';':
+					print(f, tree->son[0]);
+					fprintf(f, ";\n");
+					print(f, tree->son[1]);
+					break;
+
+			case ',':
+					print(f, tree->son[0]);
+					fprintf(f, ", ");
+					print(f, tree->son[1]);
+					break;
+
+			case ' ':
+					print(f, tree->son[0]);
+					if(tree->son[1] != NULL){
+						fprintf(f, " ");
+						print(f, tree->son[1]);
+					}
+					break;
+
+			case OPERATOR_LE:
+					print(f, tree->son[0]);
+					fprintf(f, " <= ");
+					print(f, tree->son[1]);
+					break;
+
+			case OPERATOR_GE:
+					print(f, tree->son[0]);
+					fprintf(f, " >= ");
+					print(f, tree->son[1]);
+					break;
+
+
+			case OPERATOR_EQ:
+					print(f, tree->son[0]);
+					fprintf(f, " == ");
+					print(f, tree->son[1]);
+					break;
+
+			case OPERATOR_NE:
+					print(f, tree->son[0]);
+					fprintf(f, " != ");
+					print(f, tree->son[1]);
+					break;
+
+
+			case OPERATOR_AND:
+					print(f, tree->son[0]);
+					fprintf(f, " && ");
+					print(f, tree->son[1]);
+					break;
+
+			case OPERATOR_OR:
+					print(f, tree->son[0]);
+					fprintf(f, " || ");
+					print(f, tree->son[1]);
+					break;
+
+			case '>':
+					print(f, tree->son[0]);
+					fprintf(f, " > ");
+					print(f, tree->son[1]);
+					break;
+
+			case '<':
+					print(f, tree->son[0]);
+					fprintf(f, " < ");
+					print(f, tree->son[1]);
+					break;
+
+			case '+':
+					print(f, tree->son[0]);
+					fprintf(f, " + ");
+					print(f, tree->son[1]);
+					break;
+
+			case '-':
+					print(f, tree->son[0]);
+					fprintf(f, " - ");
+					print(f, tree->son[1]);
+					break;
+
+			case '*':
+					print(f, tree->son[0]);
+					fprintf(f, " * ");
+					print(f, tree->son[1]);
+					break;
+
+			case '/':
+					print(f, tree->son[0]);
+					fprintf(f, " / ");
+					print(f, tree->son[1]);
+					break;
+
+			case '!':
+					fprintf(f, "! ");
+					print(f, tree->son[0]);
+					break;
+
+			case '(':
+					fprintf(f, "(");
+					print(f, tree->son[0]);
+					fprintf(f, ")");
+					break;
+
+			case '{':
+					fprintf(f, "{\n");
+					print(f, tree->son[0]);
+					fprintf(f, "}");
+					break;
+
+		}
+	}
+}
