@@ -1,3 +1,14 @@
+#define	TAC_SYMBOL	0
+#define	TAC_LABEL	1
+#define	TAC_ADD		2
+#define	TAC_SUB		3
+#define	TAC_MUL		4
+#define	TAC_DIV		5
+#define	TAC_JMP		6
+#define	TAC_JZ		7
+#define	TAC_JNZ		8
+#define	TAC_JN		9
+
 typedef struct s_TAC{
 	int type;
 	char* op_keys[3];
@@ -16,6 +27,20 @@ TAC *createTAC(int type, char* op0, char* op1, char* op2){
 	t->prev = NULL;
 	t->next = NULL;
 	return t;
+}
+
+TAC *first(TAC *tac){
+	if(tac == NULL)
+		return NULL;
+
+	for(; tac->prev != NULL; tac = tac->prev);
+	return tac;
+}
+
+void printTAC(TAC *tac){
+	for(tac = first(tac); tac != NULL; tac = tac->next){
+
+	}
 }
 
 char *makeLabel(){
@@ -43,6 +68,8 @@ TAC *joinTAC(TAC *begin, TAC *end){
 
 	TAC *aux;
 	for(aux = end; aux->prev != NULL; aux = aux->prev);
+	for(; begin->next != NULL; begin = begin->next);
+
 	aux->prev = begin;
 	begin->next = aux;
 	return end;
@@ -51,23 +78,273 @@ TAC *joinTAC(TAC *begin, TAC *end){
 TAC *createTACWhen(AST *tree){
 	char *end = makeLabel();
 	TAC *cond = makeTAC(tree->son[0]);
-	TAC *jmp = createTAC(TAC_JNZ, end, cond->op[0], NULL);
+	TAC *jmp = createTAC(TAC_JZ, end, cond->op_keys[0], NULL);
 	TAC *body = makeTAC(tree->son[1]);
 	TAC *lab = createTAC(TAC_LABEL, end, NULL, NULL);
 	return joinTAC(joinTAC(joinTAC(cond,jmp),body),lab);
 }
 
-TAC *createTACWhen(AST *tree){
+TAC *createTACWhenElse(AST *tree){
 	char *els = makeLabel();
 	char *end = makeLabel();
 	TAC *cond = makeTAC(tree->son[0]);
-	TAC *jmp_els = createTAC(TAC_JNZ, els, cond->op[0], NULL);
+	TAC *jmp_els = createTAC(TAC_JZ, els, cond->op_keys[0], NULL);
 	TAC *body = makeTAC(tree->son[1]);
-	TAC *jmp_end = createTAC(TAC_JMP, end, cond->op[0], NULL);
+	TAC *jmp_end = createTAC(TAC_JMP, end, NULL, NULL);
 	TAC *lab_els = createTAC(TAC_LABEL, els, NULL, NULL);
 	TAC *body_els = makeTAC(tree->son[2]);
 	TAC *lab_end = createTAC(TAC_LABEL, end, NULL, NULL);
 	return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(cond,jmp_els),body),jmp_end),lab_els),body_els),lab_end);
+}
+
+TAC *createTACWhile(AST *tree){
+	char *begin = makeLabel();
+	char *end = makeLabel();
+	TAC *lbgn = createTAC(TAC_LABEL, begin, NULL, NULL);
+	TAC *cond = makeTAC(tree->son[0]);
+	TAC *j0 = createTAC(TAC_JZ, end, cond->op_keys[0], NULL);
+	TAC *body = makeTAC(tree->son[1]);
+	TAC *j1 = createTAC(TAC_JMP, begin, NULL, NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+	return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(lbgn,cond),j0),body),j1),lend);
+}
+
+TAC *createTACFor(AST *tree){
+	char *begin = makeLabel();
+	char *end = makeLabel();
+
+	TAC *var = makeTAC(tree->son[0]);
+	TAC *init = makeTAC(tree->son[1]);
+	TAC *mov = createTAC(TAC_MOV, var->op_keys[0], init->op_keys[0],NULL);
+
+	TAC *max = makeTAC(tree->son[2]);
+
+	TAC *lbgn = createTAC(TAC_LABEL, begin, NULL, NULL);
+	char *aux = makeTemp();
+	TAC *check = createTAC(TAC_MINUS, aux, max->op_keys[0], var->op_keys[0]);
+	TAC *jend = createTAC(TAC_JN, end, check->op_keys[0], NULL);
+	TAC *body = makeTAC(tree->son[3]);
+	TAC *inc = createTAC(TAC_ADD, var->op_keys[0], var->op_keys[0], "$1");
+	TAC *jbgn = createTAC(TAC_JMP, begin, NULL, NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+
+	return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(var,init),mov),max),lbgn),check),jend),body),inc),jbgn),lend);
+}
+
+TAC *createTACArithmetic(AST *tree){
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+
+	int type;
+	switch(tree->type){
+		case '+':	type = TAC_ADD;
+				break;
+
+		case '-':	type = TAC_SUB;
+				break;
+
+		case '*':	type = TAC_MUL;
+				break;
+
+		case '/':	type = TAC_DIV;
+				break;
+	}
+
+	char *res = makeTemp();
+	TAC *tac = createTAC(type,res,op0->op_keys[0],op1->op_keys[0]);
+
+	return joinTAC(joinTAC(op0,op1),tac);
+}
+
+TAC *createTACOr(AST *tree){
+	char *tru = makeLabel();
+	char *end = makeLabel();
+
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *j0 = createTAC(TAC_JNZ, tru, op0->op_keys[0], NULL);
+	TAC *op1 = makeTAC(tree->son[1]);
+	TAC *j1 = createTAC(TAC_JNZ, tru, op1->op_keys[0], NULL);
+
+	char *res = makeTemp();
+	TAC *mov0 = createTAC(TAC_MOV, res, "$0", NULL);
+	TAC *jend = createTAC(TAC_JMP, end, NULL, NULL);
+	TAC *ltru = createTAC(TAC_LABEL, tru, NULL, NULL);
+	TAC *mov1 = createTAC(TAC_MOV, res, "$1", NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+
+	joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(op0,j0),op1),j1),mov0),jend),ltru),mov1)lend);
+	return mov1;
+}
+
+TAC *createTACAnd(AST *tree){
+	char *fals = makeLabel();
+	char *end = makeLabel();
+
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *j0 = createTAC(TAC_JZ, fals, op0->op_keys[0], NULL);
+	TAC *op1 = makeTAC(tree->son[1]);
+	TAC *j1 = createTAC(TAC_JZ, fals, op1->op_keys[0], NULL);
+
+	char *res = makeTemp();
+	TAC *mov1 = createTAC(TAC_MOV, res, "$1", NULL);
+	TAC *jend = createTAC(TAC_JMP, end, NULL, NULL);
+	TAC *lfals = createTAC(TAC_LABEL, fals, NULL, NULL);
+	TAC *mov0 = createTAC(TAC_MOV, res, "$0", NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+
+	joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(op0,j0),op1),j1),mov1),jend),lfals),mov0)lend);
+	return mov0;
+}
+
+TAC *createTACNot(AST *tree){
+	char *fals = makeLabel();
+	char *end = makeLabel();
+
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *j0 = createTAC(TAC_JZ, fals, op0->op_keys[0], NULL);
+
+	char *res = makeTemp();
+	TAC *mov0 = createTAC(TAC_MOV, res, "$0", NULL);
+	TAC *jend = createTAC(TAC_JMP, end, NULL, NULL);
+	TAC *lfals = createTAC(TAC_LABEL, fals, NULL, NULL);
+	TAC *mov1 = createTAC(TAC_MOV, res, "$1", NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+
+	joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(op0,j0),mov1),jend),lfals),mov0)lend);
+	return mov1;
+}
+
+TAC *createTACEqual(AST *tree){
+	char *tru = makeLabel();
+	char *end = makeLabel();
+
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+
+	char *aux = makeTemp();
+	TAC *check = createTAC(TAC_SUB, aux, op0->op_keys[0], op1->op_keys[0]);
+	TAC *jz = createTAC(TAC_JZ, tru, chech->op_keys[0], NULL);
+	
+	char *res = makeTemp();
+	TAC *mov0 = createTAC(TAC_MOV, res, "$0", NULL);
+	TAC *jmp = createTAC(TAC_JMP, end, NULL, NULL);
+	TAC *ltru = createTAC(TAC_LABEL, tru, NULL, NULL);
+	TAC *mov1 = createTAC(TAC_MOV, res, "$1", NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+	joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(op0,op1),check),jz),mov0),jmp),ltru),mov1),lend);
+	return mov1;
+}
+
+TAC *createTACNotEqual(AST *tree){
+	char *fals = makeLabel();
+	char *end = makeLabel();
+
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+
+	char *aux = makeTemp();
+	TAC *check = createTAC(TAC_SUB, aux, op0->op_keys[0], op1->op_keys[0]);
+	TAC *jz = createTAC(TAC_JZ, fals, chech->op_keys[0], NULL);
+	
+	char *res = makeTemp();
+	TAC *mov1 = createTAC(TAC_MOV, res, "$1", NULL);
+	TAC *jmp = createTAC(TAC_JMP, end, NULL, NULL);
+	TAC *lfals = createTAC(TAC_LABEL, fals, NULL, NULL);
+	TAC *mov0 = createTAC(TAC_MOV, res, "$0", NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+	joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(op0,op1),check),jz),mov1),jmp),lfals),mov0),lend);
+	return mov0;
+}
+
+TAC *createTACGreater(AST *tree){
+	char *tru = makeLabel();
+	char *end = makeLabel();
+
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+
+	char *aux = makeTemp();
+	TAC *check = createTAC(TAC_SUB, aux, op1->op_keys[0], op0->op_keys[0]);
+	TAC *jn = createTAC(TAC_JN, tru, chech->op_keys[0], NULL);
+	
+	char *res = makeTemp();
+	TAC *mov0 = createTAC(TAC_MOV, res, "$0", NULL);
+	TAC *jmp = createTAC(TAC_JMP, end, NULL, NULL);
+	TAC *ltru = createTAC(TAC_LABEL, tru, NULL, NULL);
+	TAC *mov1 = createTAC(TAC_MOV, res, "$1", NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+	joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(op0,op1),check),jz),mov0),jmp),ltru),mov1),lend);
+	return mov1;
+}
+
+TAC *createTACGreaterEqual(AST *tree){
+	char *fals = makeLabel();
+	char *end = makeLabel();
+
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+
+	char *aux = makeTemp();
+	TAC *check = createTAC(TAC_SUB, aux, op0->op_keys[0], op1->op_keys[0]);
+	TAC *jn = createTAC(TAC_JN, fals, chech->op_keys[0], NULL);
+	
+	char *res = makeTemp();
+	TAC *mov1 = createTAC(TAC_MOV, res, "$1", NULL);
+	TAC *jmp = createTAC(TAC_JMP, end, NULL, NULL);
+	TAC *lfals = createTAC(TAC_LABEL, fals, NULL, NULL);
+	TAC *mov0 = createTAC(TAC_MOV, res, "$0", NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+	joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(op0,op1),check),jz),mov1),jmp),ltru),mov0),lend);
+	return mov0;
+}
+
+TAC *createTACLess(AST *tree){
+	char *tru = makeLabel();
+	char *end = makeLabel();
+
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+
+	char *aux = makeTemp();
+	TAC *check = createTAC(TAC_SUB, aux, op0->op_keys[0], op1->op_keys[0]);
+	TAC *jn = createTAC(TAC_JN, tru, chech->op_keys[0], NULL);
+	
+	char *res = makeTemp();
+	TAC *mov0 = createTAC(TAC_MOV, res, "$0", NULL);
+	TAC *jmp = createTAC(TAC_JMP, end, NULL, NULL);
+	TAC *ltru = createTAC(TAC_LABEL, tru, NULL, NULL);
+	TAC *mov1 = createTAC(TAC_MOV, res, "$1", NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+	joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(op0,op1),check),jz),mov0),jmp),ltru),mov1),lend);
+	return mov1;
+}
+
+TAC *createTACLessEqual(AST *tree){
+	char *fals = makeLabel();
+	char *end = makeLabel();
+
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+
+	char *aux = makeTemp();
+	TAC *check = createTAC(TAC_SUB, aux, op1->op_keys[0], op0->op_keys[0]);
+	TAC *jn = createTAC(TAC_JN, fals, chech->op_keys[0], NULL);
+	
+	char *res = makeTemp();
+	TAC *mov1 = createTAC(TAC_MOV, res, "$1", NULL);
+	TAC *jmp = createTAC(TAC_JMP, end, NULL, NULL);
+	TAC *lfals = createTAC(TAC_LABEL, fals, NULL, NULL);
+	TAC *mov0 = createTAC(TAC_MOV, res, "$0", NULL);
+	TAC *lend = createTAC(TAC_LABEL, end, NULL, NULL);
+	joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(op0,op1),check),jz),mov1),jmp),ltru),mov0),lend);
+	return mov0;
+}
+
+TAC *createTACAssign(AST *tree){
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+	TAC *mov = createTAC(TAC_MOV, op0->op_keys[0], op1->op_keys[0], NULL);
+	return joinTAC(joinTAC(op0,op1),mov);
 }
 
 TAC *makeTAC(AST *tree){
@@ -83,16 +360,16 @@ TAC *makeTAC(AST *tree){
 					break;
 
 			case KW_WHEN:
-					break;
+					return createTACWhen(tree);
 
 			case KW_ELSE:
-					break;
+					return createTACWhenElse(tree);
 
 			case KW_WHILE:
-					break;
+					return createTACWhile(tree);
 
 			case KW_FOR:
-					break;
+					return createTACFor(tree);
 
 			case KW_BYTE:
 					break;
@@ -117,178 +394,76 @@ TAC *makeTAC(AST *tree){
 					return createTAC(TAC_SYMBOL, tree->hash_key, NULL, NULL);
 
 			case ':':
-					print(f, tree->son[0]);
-					fprintf(f," : ");
-					print(f, tree->son[1]);
-					fprintf(f," ");
-					print(f, tree->son[2]);
 					break;
 
 			case VDEF:
-					print(f, tree->son[0]);
-					fprintf(f," : ");
-					print(f, tree->son[1]);
-					fprintf(f,"[");
-					print(f, tree->son[2]);
-					fprintf(f,"]");
-					if(tree->son != NULL){
-						fprintf(f," ");
-						print(f, tree->son[3]);
-					}
 					break;
 
 			case FDEF:
-					print(f, tree->son[0]);
-					fprintf(f," ");
-					print(f, tree->son[1]);
-					fprintf(f,"(");
-					print(f, tree->son[2]);
-					fprintf(f,") ");
-					print(f, tree->son[3]);
 					break;
 
 			case FPAR:
-					print(f, tree->son[0]);
-					fprintf(f," ");
-					print(f, tree->son[1]);
 					break;
 
 			case FCALL:
-					print(f, tree->son[0]);
-					fprintf(f,"(");
-					print(f, tree->son[1]);
-					fprintf(f,")");
 					break;
 
 			case '[':
-					print(f, tree->son[0]);
-					fprintf(f,"[");
-					print(f, tree->son[1]);
-					fprintf(f,"]");
 					break;
 
 			case '=':
-					print(f, tree->son[0]);
-					fprintf(f," = ");
-					print(f, tree->son[1]);
-					break;
+					return createTACAssign(tree);
 
 			case '#':
-					print(f, tree->son[0]);
-					fprintf(f,"#");
-					print(f, tree->son[1]);
 					break;
 
 			case ';':
-					print(f, tree->son[0]);
-					fprintf(f, ";\n");
-					print(f, tree->son[1]);
-					break;
+					return joinTAC(makeTAC(tree->son[0]),makeTAC(tree->son[1]));
 
 			case ',':
-					print(f, tree->son[0]);
-					fprintf(f, ", ");
-					print(f, tree->son[1]);
 					break;
 
 			case ' ':
-					print(f, tree->son[0]);
-					if(tree->son[1] != NULL){
-						fprintf(f, " ");
-						print(f, tree->son[1]);
-					}
 					break;
 
 			case OPERATOR_LE:
-					print(f, tree->son[0]);
-					fprintf(f, " <= ");
-					print(f, tree->son[1]);
-					break;
+					return createTACLessEqual(tree);
 
 			case OPERATOR_GE:
-					print(f, tree->son[0]);
-					fprintf(f, " >= ");
-					print(f, tree->son[1]);
-					break;
-
+					return createTACGreaterEqual(tree);
 
 			case OPERATOR_EQ:
-					print(f, tree->son[0]);
-					fprintf(f, " == ");
-					print(f, tree->son[1]);
-					break;
+					return createTACEqual(tree);
 
 			case OPERATOR_NE:
-					print(f, tree->son[0]);
-					fprintf(f, " != ");
-					print(f, tree->son[1]);
-					break;
-
+					return createTACNotEqual(tree);
 
 			case OPERATOR_AND:
-					print(f, tree->son[0]);
-					fprintf(f, " && ");
-					print(f, tree->son[1]);
-					break;
+					return createTACAnd(tree);;
 
 			case OPERATOR_OR:
-					print(f, tree->son[0]);
-					fprintf(f, " || ");
-					print(f, tree->son[1]);
-					break;
+					return createTACOr(tree);;
 
 			case '>':
-					print(f, tree->son[0]);
-					fprintf(f, " > ");
-					print(f, tree->son[1]);
-					break;
+					return createTACGreater(tree);
 
 			case '<':
-					print(f, tree->son[0]);
-					fprintf(f, " < ");
-					print(f, tree->son[1]);
-					break;
+					return createTACLess(tree);
 
 			case '+':
-					print(f, tree->son[0]);
-					fprintf(f, " + ");
-					print(f, tree->son[1]);
-					break;
-
 			case '-':
-					print(f, tree->son[0]);
-					fprintf(f, " - ");
-					print(f, tree->son[1]);
-					break;
-
 			case '*':
-					print(f, tree->son[0]);
-					fprintf(f, " * ");
-					print(f, tree->son[1]);
-					break;
-
 			case '/':
-					print(f, tree->son[0]);
-					fprintf(f, " / ");
-					print(f, tree->son[1]);
-					break;
+					return createTACArithmetic(tree);
 
 			case '!':
-					fprintf(f, "! ");
-					print(f, tree->son[0]);
-					break;
+					return createTACNot(tree);
 
 			case '(':
-					fprintf(f, "(");
-					print(f, tree->son[0]);
-					fprintf(f, ")");
 					break;
 
 			case '{':
-					fprintf(f, "{\n");
-					print(f, tree->son[0]);
-					fprintf(f, "}");
-					break;
+					return makeTAC(tree->son[0]);
 
 		}
 	}
