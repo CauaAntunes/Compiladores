@@ -15,6 +15,7 @@ int running = 1;
 
 hashtable_t *ht;
 
+#include "tac.c"
 #include "semantic.c"
 
 int getLineNumber(){

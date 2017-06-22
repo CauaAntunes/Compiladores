@@ -116,7 +116,7 @@ cmdlist		: cmd ';' cmdlist	{$$ = create(';',0,$1,$3,0,0);}
 		;
 cmd		: cmdblock
 		| id '=' exp						{$$ = create ('=',0,$1,$3,0,0);}
-		| id '#' exp '=' exp					{$$ = create ('=',0,create('#',0,$1,$3,0,0),$5,0,0);}
+		| id '#' exp '=' exp					{$$ = create ('#',0,$1,$3,$5,0);}
 		| KW_READ id						{$$ = create(KW_READ,0,$2,0,0,0);}
 		| KW_PRINT printlist					{$$ = create(KW_PRINT,0,$2,0,0,0);}
 		| KW_RETURN exp						{$$ = create(KW_RETURN,0,$2,0,0,0);}
@@ -308,6 +308,8 @@ void print(FILE *f,AST *tree)
 					print(f, tree->son[0]);
 					fprintf(f,"#");
 					print(f, tree->son[1]);
+					fprintf(f," = ");
+					print(f, tree->son[2]);
 					break;
 
 			case ';':

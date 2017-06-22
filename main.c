@@ -14,6 +14,8 @@ int main(int argc, char **argv) {
 
 		initMe();
 		yyparse();
-		return checkDeclarations(ASTree);
+		checkDeclarations(ASTree);
+		makeTAC(ASTree);
+		//printTAC(makeTAC(ASTree));
 	}
 }

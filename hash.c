@@ -2,6 +2,7 @@
 #include <stdio.h>
 #include <limits.h>
 #include <string.h>
+#include "tac.h"
 //Cauã Antunes e Gabriela Pagnoncelli
 
 struct s_parlist{

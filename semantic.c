@@ -352,7 +352,11 @@ int semantic(AST *tree)
 					if(semantic(tree->son[1]) != TYPE_INT)
 						exit(4);
 
-					return entry->data_type;
+					aux = semantic(tree->son[2]);
+					if(aux != TYPE_INT && aux != TYPE_REAL)
+						exit(4);
+
+					return COMMAND;
 
 			case ';':
 					if((tree->son[0] == NULL || semantic(tree->son[0]) == COMMAND) &&

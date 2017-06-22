@@ -1,14 +1,9 @@
 #
-# UFRGS - Compiladores B - Cauã Antunes e Gabriela Pereira - 2017/1 - Etapa 2
-#
-# Makefile for single compiler call
-# All source files must be included from code embedded in scanner.l
-# In our case, you probably need #include "hash.c" at the beginning
-# and #include "main.c" in the last part of the scanner.l
+# UFRGS - Compiladores B - Cauã Antunes e Gabriela Pereira - 2017/1 - Etapa 5
 #
 
-etapa4: y.tab.o lex.yy.c
-	cc y.tab.o -o etapa4 lex.yy.c -w
+etapa5: y.tab.o lex.yy.c
+	cc y.tab.o -o etapa5 lex.yy.c -w
 
 y.tab.o: y.tab.c
 	cc -c y.tab.c -w
