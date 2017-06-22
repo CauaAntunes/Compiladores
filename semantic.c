@@ -141,31 +141,6 @@ int checkDeclarations(AST *tree){
 
 							entry->params = count(',',next->son[2]);
 
-							if(entry->params > 0){
-								AST *aux = next->son[2];
-								struct s_parlist *par = NULL;
-								struct s_parlist *last = NULL;
-								while(aux != NULL && aux->type == ','){
-									struct s_parlist *p = malloc(sizeof(struct s_parlist));
-									p->param = aux->son[0]->son[1]->hash_key;
-									p->next = NULL;
-									if(par == NULL)
-										par = p;
-									else last->next = p;
-									last = p;
-
-									aux = aux->son[1];
-								}
-								struct s_parlist *p = malloc(sizeof(struct s_parlist));
-								p->param = aux->son[1]->hash_key;
-								p->next = NULL;
-								if(par == NULL)
-									par = p;
-								else last->next = p;
-								last = p;
-								entry->parlist = par;
-							}
-
 							tree_list *n = malloc(sizeof(tree_list));
 							if(n == NULL){
 								printf("Could not allocate memory.\n");
