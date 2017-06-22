@@ -10,6 +10,10 @@
 #define	TAC_JN		9
 #define	TAC_MOV		10
 
+#include "ast.h"
+#include <stdio.h>
+#include <stdlib.h>
+
 typedef struct s_TAC{
 	int type;
 	char* op_keys[3];
@@ -400,26 +404,29 @@ TAC *createTACVarDef(AST *tree){
 	return joinTAC(joinTAC(var,init),mov);
 }
 
+TAC *createTACVecDef(AST *tree){
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+	TAC *res = joinTAC(op0, op1);
+	TAC *value = createTAC("[",op0->op_keys[0],op1->op_keys[1],res->op_keys[2])
+}
+
 TAC *createTACFunDef(AST *tree){
 	TAC *fun = makeTAC(tree->son[1]);
-	char *lab = malloc(strlen(fun->op_keys[0])+2);
-	sprintf(lab,"$%s",fun->op_keys[0]);
-	ht_set(ht,lab,lab);
+	char *lab = makeLabel();
 
 	AST *aux = tree->son[2];
 	TAC *t = fun;
-	int i = 0;
+
 	while(aux != NULL && aux->type == ','){
 		t = joinTAC(t,makeTAC(aux->son[0]));
-
-		/*char *par = malloc(strlen(lab)+3);
-		sprintf(par,"%s_%d",lab,i);
-		ht_set(ht,par,par);*/
-
 		aux = aux->son[1];
-		i++;
 	}
+
 	TAC *lbgn = createTACLabel(lab);
+
+	ht_get(ht,fun->op_keys[0])->label = lbgn;
+
 	TAC *body = makeTAC(tree->son[3]);
 	TAC *jmp = createTAC(TAC_JMP, "$return_label", NULL, NULL);
 	return joinTAC(joinTAC(joinTAC(t,lbgn),body),jmp);

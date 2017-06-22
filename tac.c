@@ -10,6 +10,10 @@
 #define	TAC_JN		9
 #define	TAC_MOV		10
 
+#include "ast.h"
+#include <stdio.h>
+#include <stdlib.h>
+
 typedef struct s_TAC{
 	int type;
 	char* op_keys[3];
@@ -399,6 +403,14 @@ TAC *createTACVarDef(AST *tree){
 	TAC *mov = createTAC(TAC_MOV, var->op_keys[0], init->op_keys[0], NULL);
 	return joinTAC(joinTAC(var,init),mov);
 }
+
+/*TAC *createTACVecDef(AST *tree){
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+	TAC *vec = joinTAC(op0, op1);
+	TAC *value = createTAC("[",op0->op_keys[0],op1->op_keys[1],vec->op_keys[2]);
+	return joinTAC(joinTAC(?,?),value);
+}*/
 
 TAC *createTACFunDef(AST *tree){
 	TAC *fun = makeTAC(tree->son[1]);

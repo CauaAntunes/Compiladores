@@ -1,0 +1,51 @@
+// UFRGS - Compiladores - Marcelo Johann - 2013/1
+
+word a: 1;
+word a: 1;    // ERROR
+word v [10];
+word $pt: 0;
+byte i : 'a';
+bool b : TRUE;
+
+word main ()
+  {
+  output "Digite um numero: ";
+  input a;
+  a = a;
+  // ERRORS
+  a = v;
+  a = incn;
+  a = a[1];
+  a = v[v];
+  a = incn[1];
+  a = a(5);
+  a = v(5);
+  a = incn(5);
+  a = incn(5,6,7);
+  v = 2;
+  a[5] = 2;
+  incn = 2;
+
+  a = incn(5,6);  // OK
+  v[5] = 2;       // OK
+
+  loop (i<10)
+    {
+    i = 10 + 20 + 555 + 23+((233 + 1) + 'A');
+    a = 'a';
+    pt = &a;
+    a = *pt;
+    pt = pt + 1;
+    // ERRORS
+    pt = pt/2;
+    a = (i < 10);
+    b = (i < b);
+    b = xis;
+    b = (i < 10);
+    };
+  output "Resultado das contas estranhas: ",a,"\n";
+  return incn;  // ERROR
+  }
+
+word incn (word x, word n)
+  { return x+n; }
