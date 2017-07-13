@@ -189,8 +189,8 @@ void asmMov(TAC *tac){
 
 void asmInc(TAC *tac){
 	char aux[64];
-	
 
+	entry_t *e = ht_get(ht, tac->op_keys[0]);
 	if(e->reg < 0){
 		findReg(&(e->reg),NULL);
 
@@ -298,7 +298,7 @@ void asmJMP(TAC *tac){
 	strcat(prog, aux);
 }
 
-void asmCMP(TAC *tac){
+void asmComp(TAC *tac){
 	char aux[64];
 	entry_t *e = ht_get(ht, tac->op_keys[0]);
 	entry_t *f = ht_get(ht, tac->op_keys[1]);
@@ -345,7 +345,7 @@ void makeASM(TAC *tac){
 				asmDiv(tac); break;
 
 			case TAC_CMP:
-				printf("TAC_CMP"); break;
+				asmComp(tac); break;
 
 			case TAC_JL:
 				asmJL(tac); break; 
