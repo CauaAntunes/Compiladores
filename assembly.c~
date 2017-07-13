@@ -317,7 +317,7 @@ void asmComp(TAC *tac){
 			strcat(prog,aux);
 		}
 		sprintf(aux,"\tcmpl\t%%e%cx, %%e%cx\n",rf+'a', re+'a');	
-	} else sprintf(aux,"\tcmpl\t$%s, %%e%cx\n",tac->op_keys[1], re+'a');
+	} else //sprintf(aux,"\tcmpl\t$%s, %%e%cx\n",tac->op_keys[1][0], re+'a');
 	strcat(prog,aux);
 }
 
