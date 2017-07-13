@@ -152,15 +152,14 @@ void asmDiv(TAC *tac){
 }
 
 void asmMov(TAC *tac){
+	char aux[64];
 	entry_t *e0 = ht_get(ht, tac->op_keys[0]);
 	entry_t *e1 = ht_get(ht, tac->op_keys[1]);
 
-	if(e0->reg < 0){
+	if(e1->reg < 0){
 		int i;
 		for(i = 0; i < 4 && regs[i] != NULL; i++);
 		i %= 4;
-
-		if(i == e1->reg) i++;
 
 		if (regs[i] != NULL){
 			sprintf(aux,"\tmovl\t%%e%cx, __temp%d(%%rip)\n", 'a'+i, regs[i]);
@@ -168,21 +167,21 @@ void asmMov(TAC *tac){
 
 			entry_t *e1 = ht_get(ht, regs[i]);
 			e1->reg = -2;
+			regs[i] = NULL;
 		}
 
-		if(e1->reg < 0){
-			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[1], 'a'+i);
-		} else {
-			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", 'a'+e1->reg, 'a'+i);
-		}
-
+		sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n\tmovl\t%%e%cx, %s(%%rip)\n", tac->op_keys[1], 'a'+i, 'a'+i, tac->op_keys[0]);
 	} else {
-		if(e1->reg < 0){
-			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[1], e0->reg);
-		} else {
-			sprintf(aux,"\tmovl\t%%e%cx, %%e%cx\n", e1->reg, e0->reg);
-		}
-		strcat(prog,aux);
+		sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+e1->reg, tac->op_keys[0]);
+		regs[e1->reg] = NULL;
+		e1->reg = -1;
+	}
+
+	strcat(prog, aux);
+
+	if(e0->reg >= 0){
+		regs[e0->reg] == NULL;
+		e0->reg = -1;
 	}
 }
 

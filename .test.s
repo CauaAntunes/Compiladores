@@ -48,6 +48,8 @@ add:
 	movl	-8(%rbp), %eax
 	addl	%edx, %eax
 	movl	%eax, a(%rip)
+	movl	a(%rip), %eax
+	movl	%eax, b(%rip)
 	movl	-4(%rbp), %edx
 	movl	-8(%rbp), %eax
 	addl	%edx, %eax

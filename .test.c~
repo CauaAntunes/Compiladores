@@ -8,11 +8,12 @@ int c[3];
 int cococococ[3] = {1, 2, 3};
 int add(int n, int m, int j){
 	a = n + m;
+	b = j;
 	return n+m;
 }
 void main(){
 if(a<b){
-  a = 1 +1;
+  a++;
 }
 d = (a-b)/(d-a)+(a*b)+(b+d)-(a-d);
 }
