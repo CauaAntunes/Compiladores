@@ -5,41 +5,6 @@ char *regs[4] = {NULL};
 char* data;
 char* prog;
 
-void findReg(int *x1, int *x2){
-	char aux[64];
-
-	if(*x1 < 0){
-		int i;
-		for(i = 0; i < 4 && regs[i] != NULL; i++);
-		i %= 4;
-
-		if (regs[i] != NULL){
-			sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+i, regs[i]);
-			strcat(prog,aux);
-
-			entry_t *e = ht_get(ht, regs[i]);
-			e->reg = -2;
-		}
-		*x1 = i;
-	}
-	if(x2 != NULL) {
-		int i;
-		for(i = 0; i < 4 && regs[i] != NULL; i++);
-		i %= 4;
-
-		if(*x2 == *x1) (*x2)++;
-
-		if (regs[i] != NULL){
-			sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+i, regs[i]);
-			strcat(prog,aux);
-
-			entry_t *e = ht_get(ht, regs[i]);
-			e->reg = -2;
-		}
-		*x2 = i;
-	}
-}
-
 void asmLabel(TAC *tac){
 	char aux[16];
 	sprintf(aux,".%s:\n",tac->op_keys[0]);
@@ -51,51 +16,75 @@ void asmArithmetic(TAC *tac){
 	int i;
 	int x[2] = {0,-1};
 
-	entry_t *e1 = ht_get(ht, tac->op_keys[1]);
-	if(e1->reg < 0){
-		findReg(&x[0], NULL);
-		if(tac->op_keys[1][0] > '9' || tac->op_keys[1][0] < '0'){
-			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n",tac->op_keys[1],'a'+x[0]);
-		} else {
-			sprintf(aux,"\tmovl\t$%s, %%e%cx\n",tac->op_keys[1],'a'+x[0]);
-		}
-		strcat(prog,aux);
-	} else x[0] = e1->reg;
+	for(i = 1; i < 3; i++){
+		if(i == 1 || tac->op_keys[i][0] > '9' || tac->op_keys[i][0] < '0'){
 
-	if(tac->op_keys[2][0] > '9' || tac->op_keys[2][0] < '0'){
-		entry_t *e2 = ht_get(ht, tac->op_keys[2]);
-		if(e2->reg < 0){
-			findReg(&x[0], &x[1]);
-			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n",tac->op_keys[2],'a'+x[1]);
-			strcat(prog,aux);
-		} else {
-			x[1] = e2->reg;
+			entry_t *e = ht_get(ht, tac->op_keys[i]);
+			if(e->reg < 0){
+				int j = 0;
+				for(j = 0; j < 4 && regs[j] != NULL; j++);
+
+				if(i==2 && j == x[0]) j++;
+				j %= 4;
+
+				if(regs[j] != NULL){
+					sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n",'a'+j,regs[j]);
+					strcat(prog,aux);
+
+					entry_t *e0 = ht_get(ht, regs[j]);
+					e0->reg == -2;
+				}
+
+				x[i-1] = j;
+
+				regs[j] = tac->op_keys[i];
+				if(tac->op_keys[i][0] > '9' || tac->op_keys[i][0] < '0'){
+					sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n",tac->op_keys[i],'a'+j);
+					strcat(prog,aux);
+				} else if (i==1){
+					sprintf(aux,"\tmovl\t$%s, %%e%cx\n",tac->op_keys[i],'a'+j);
+					strcat(prog,aux);
+				}
+			} else {
+				x[i-1] = e->reg;
+			}
 		}
+	}
+
+	if(tac->op_keys[2][0] <= '9' && tac->op_keys[2][0] >= '0'){
 		switch(tac->type){
 			case TAC_ADD:
-				sprintf(aux,"\taddl\t%%e%cx, %%e%cx\n",'a'+x[0],'a'+x[1]);
+				sprintf(aux,"\taddl\t$%s, %%e%cx\n",tac->op_keys[2],'a'+x[0]);
 				break;
 
 			case TAC_SUB:
-				sprintf(aux,"\tsubl\t%%e%cx, %%e%cx\n",'a'+x[0],'a'+x[1]);
+				sprintf(aux,"\tsubl\t$%s, %%e%cx\n",tac->op_keys[2],'a'+x[0]);
 				break;
 
 			case TAC_MUL:
-				sprintf(aux,"\timull\t%%e%cx, %%e%cx\n",'a'+x[0],'a'+x[1]);
+				sprintf(aux,"\timull\t$%s, %%e%cx\n",tac->op_keys[2],'a'+x[0]);
 				break;
+
+			//case TAC_DIV: divisão é diferente
+
+			default: aux[0] = 0; break;
 		}
 	} else switch(tac->type){
 		case TAC_ADD:
-			sprintf(aux,"\taddl\t$%s, %%e%cx\n",tac->op_keys[2],'a'+x[0]);
+			sprintf(aux,"\taddl\t%%e%cx, %%e%cx\n",'a'+x[0],'a'+x[1]);
 			break;
 
 		case TAC_SUB:
-			sprintf(aux,"\tsubl\t$%s, %%e%cx\n",tac->op_keys[2],'a'+x[0]);
+			sprintf(aux,"\tsubl\t%%e%cx, %%e%cx\n",'a'+x[0],'a'+x[1]);
 			break;
 
 		case TAC_MUL:
-			sprintf(aux,"\timull\t$%s, %%e%cx\n",tac->op_keys[2],'a'+x[0]);
+			sprintf(aux,"\timull\t%%e%cx, %%e%cx\n",'a'+x[0],'a'+x[1]);
 			break;
+
+		//case TAC_DIV: divisão é diferente
+
+		default: aux[0] = 0; break;
 	}
 	strcat(prog,aux);
 
@@ -167,24 +156,37 @@ void asmMov(TAC *tac){
 	entry_t *e0 = ht_get(ht, tac->op_keys[0]);
 	entry_t *e1 = ht_get(ht, tac->op_keys[1]);
 
+	if(e1->reg < 0){
+		if(tac->op_keys[1][0] > '9' || tac->op_keys[1][0] < '0'){
+			int i;
+			for(i = 0; i < 4 && regs[i] != NULL; i++);
+			i %= 4;
+
+			if (regs[i] != NULL){
+				sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+i, regs[i]);
+				strcat(prog,aux);
+
+				entry_t *e1 = ht_get(ht, regs[i]);
+				e1->reg = -2;
+				regs[i] = NULL;
+			}
+
+			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n\tmovl\t%%e%cx, %s(%%rip)\n", tac->op_keys[1], 'a'+i, 'a'+i, tac->op_keys[0]);
+		} else {
+			sprintf(aux,"\tmovl\t$%s, %s(%%rip)\n", tac->op_keys[1], tac->op_keys[0]);
+		}
+	} else {
+		sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+e1->reg, tac->op_keys[0]);
+		regs[e1->reg] = NULL;
+		e1->reg = -1;
+	}
+
+	strcat(prog, aux);
+
 	if(e0->reg >= 0){
 		regs[e0->reg] == NULL;
 		e0->reg = -1;
 	}
-
-	if(tac->op_keys[1][0] > '9' || tac->op_keys[1][0] < '0'){
-		if(e1->reg < 0){
-			findReg(&(e1->reg), NULL);
-			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[1], 'a'+e1->reg);
-			strcat(prog,aux);
-		}
-
-		sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+e1->reg, tac->op_keys[0]);
-		regs[e1->reg] = NULL;
-		e1->reg = -1;
-
-	} else sprintf(aux,"\tmovl\t$%s, %s(%%rip)\n", tac->op_keys[1], tac->op_keys[0]);
-	strcat(prog, aux);
 }
 
 void asmInc(TAC *tac){
@@ -192,10 +194,21 @@ void asmInc(TAC *tac){
 	
 
 	if(e->reg < 0){
-		findReg(&(e->reg),NULL);
+		int i;
+		for(i = 0; i < 4 && regs[i] != NULL; i++);
+		i %= 4;
 
-		sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[0], 'a'+e->reg);
+		if (regs[i] != NULL){
+			sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+i, regs[i]);
+			strcat(prog,aux);
+
+			entry_t *e0 = ht_get(ht, regs[i]);
+			e0->reg = -2;
+		}
+
+		sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[0], 'a'+i);
 		strcat(prog,aux);
+		e->reg = i;
 	}
 
 	sprintf(aux,"\taddl\t$1, %%e%cx\n\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+e->reg, 'a'+e->reg, tac->op_keys[0]);
@@ -206,54 +219,44 @@ void asmInc(TAC *tac){
 }
 
 void asmVarDef(TAC *tac){
-	char aux[256];
-	if(tac->op_keys[1] != NULL){
-		sprintf(aux,"\t.globl %s\n\t.align 4\n\t.type %s, @object\n\t.size %s, 4\n%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], tac->op_keys[0]);
-		strcat(data,aux);
+	char *aux = (char*) malloc(256);
+	sprintf(aux,"\t.globl %s\n\t.data\n\t.align 4\n\t.type %s, @object\n\t.size %s, 4\n%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], tac->op_keys[0]);
+	strcat(data,aux);
 
-		int value;
-		//entry_t *e = ht_get(ht, tac->op_keys[0]);
-		//if(e->data_type == TYPE_INT){
-			if(tac->op_keys[1][0] == '\''){
-				value = tac->op_keys[1][1];
-			} else {
-				value = atoi(tac->op_keys[1]);
-			}
-		//}
+	int value;
+	//entry_t *e = ht_get(ht, tac->op_keys[0]);
+	//if(e->data_type == TYPE_INT){
+		if(tac->op_keys[1][0] == '\''){
+			value = tac->op_keys[1][1];
+		} else {
+			value = atoi(tac->op_keys[1]);
+		}
+	//}
 
-		sprintf(aux,"\t.long %d\n",value);
-		strcat(data,aux);
-	} else {
-		sprintf(aux,"\t.comm\t%s,4,4\n",tac->op_keys[0]);
-		strcat(data,aux);
-	}
+	sprintf(aux,"\t.long %d\n",value);
+	strcat(data,aux);
 }
 
 void asmVecDef(TAC *tac){
 	char aux[256];
-	if(tac->prev != NULL && tac->prev->type == TAC_SYMBOL){
-		sprintf(aux,"\t.globl %s\n\t.align 4\n\t.type %s, @object\n\t.size %s, %d\n%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], atoi(tac->op_keys[1])*4,tac->op_keys[0]);
-		strcat(data,aux);
+	sprintf(aux,"\t.globl %s\n\t.data\n\t.align 4\n\t.type %s, @object\n\t.size %s, %d\n%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], atoi(tac->op_keys[1])*4,tac->op_keys[0]);
+	strcat(data,aux);
 
-		TAC *t;
-		for(t = tac; t->prev != NULL && t->prev->type == TAC_SYMBOL; t = t->prev);
-		//entry_t *e = ht_get(ht, tac->op_keys[0]);
-		//if(e.data_type == TYPE_INT){
-		for(; t != tac; t = t->next){
-			int value;
-			if(t->op_keys[0][0] == '\''){
-				value = t->op_keys[0][1];
-			} else {
-				value = atoi(t->op_keys[0]);
-			}
-			sprintf(aux,"\t.long %d\n",value);
-			strcat(data,aux);
+	TAC *t;
+	for(t = tac; t->prev != NULL && t->prev->type == TAC_SYMBOL; t = t->prev);
+	//entry_t *e = ht_get(ht, tac->op_keys[0]);
+	//if(e.data_type == TYPE_INT){
+	for(; t != tac; t = t->next){
+		int value;
+		if(t->op_keys[0][0] == '\''){
+			value = t->op_keys[0][1];
+		} else {
+			value = atoi(t->op_keys[0]);
 		}
-		//}
-	} else {
-		sprintf(aux,"\t.comm\t%s,%d,4\n",tac->op_keys[0],atoi(tac->op_keys[1])*4);
+		sprintf(aux,"\t.long %d\n",value);
 		strcat(data,aux);
 	}
+	//}
 }
 
 void asmJL(TAC *tac){
@@ -411,7 +414,7 @@ void makeASM(TAC *tac){
 			default: break;
 		}
 	}
-	printf("\t.data\n%s", data);
-	printf("\t.text\n%s", prog);
+	printf("%s", data);
+	printf("%s", prog);
 }
 
