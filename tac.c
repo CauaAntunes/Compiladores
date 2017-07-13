@@ -26,6 +26,9 @@
 #define	TAC_READ	25
 #define	TAC_VWRITE	26
 #define	TAC_VREAD	27
+#define	TAC_INC		28
+#define	TAC_VARDEF	29
+#define	TAC_VECDEF	30
 
 int label = 0, temp = 0;
 
@@ -51,10 +54,9 @@ TAC *first(TAC *tac){
 }
 
 void printTAC(TAC *tac){
-	for(tac = first(tac); tac != NULL; tac = tac->next){
+	for(tac = first(tac); tac != NULL; tac = tac->next)
+		if(tac->type != TAC_SYMBOL){
 		switch(tac->type){
-			case TAC_SYMBOL:
-				printf("TAC_SYMBOL"); break;
 
 			case TAC_LABEL:
 				printf("TAC_LABEL"); break;
@@ -107,6 +109,9 @@ void printTAC(TAC *tac){
 			case TAC_CALL:
 				printf("TAC_CALL"); break;
 
+			case TAC_ARG:
+				printf("TAC_ARG"); break;
+
 			case TAC_RET:
 				printf("TAC_RET"); break;
 
@@ -128,6 +133,15 @@ void printTAC(TAC *tac){
 			case TAC_VREAD:
 				printf("TAC_VREAD"); break;
 
+			case TAC_INC:
+				printf("TAC_INC"); break;
+
+			case TAC_VARDEF:
+				printf("TAC_VARDEF"); break;
+
+			case TAC_VECDEF:
+				printf("TAC_VECDEF"); break;
+
 			default: printf("%d",tac->type); break;
 		}
 
@@ -141,16 +155,16 @@ void printTAC(TAC *tac){
 }
 
 char *makeLabel(){
-	char *lab = (char*) malloc(sizeof(char)*12);
-	sprintf(lab,"$label%d",label);
+	char *lab = (char*) malloc(sizeof(char)*13);
+	sprintf(lab,"__label%d",label);
 	ht_set(ht,lab,lab);
 	label++;
 	return lab;
 }
 
 char *makeTemp(){
-	char *lab = (char*) malloc(sizeof(char)*11);
-	sprintf(lab,"$temp%d",temp);
+	char *lab = (char*) malloc(sizeof(char)*12);
+	sprintf(lab,"__temp%d",temp);
 	ht_set(ht,lab,lab);
 	temp++;
 	return lab;
@@ -224,10 +238,10 @@ TAC *createTACFor(AST *tree){
 
 	TAC *lbgn = createTACLabel(begin);
 	char *aux = makeTemp();
-	TAC *check = createTAC(TAC_EQ, aux, max->op_keys[0], var->op_keys[0]);
+	TAC *check = createTAC(TAC_GE, aux, max->op_keys[0], var->op_keys[0]);
 	TAC *jend = createTAC(TAC_JNZ, end, check->op_keys[0], NULL);
 	TAC *body = makeTAC(tree->son[3]);
-	TAC *inc = createTAC(TAC_ADD, var->op_keys[0], var->op_keys[0], "#1");
+	TAC *inc = createTAC(TAC_INC, var->op_keys[0], NULL, NULL);
 	TAC *jbgn = createTAC(TAC_JMP, begin, NULL, NULL);
 	TAC *lend = createTACLabel(end);
 
@@ -314,33 +328,24 @@ TAC *createTACVecAssign(AST *tree){
 TAC *createTACVarDef(AST *tree){
 	TAC *var = makeTAC(tree->son[0]);
 	TAC *init = makeTAC(tree->son[2]);
-	TAC *mov = createTAC(TAC_MOV, var->op_keys[0], init->op_keys[0], NULL);
-	return joinTAC(joinTAC(var,init),mov);
+	TAC *def = createTAC(TAC_VARDEF, var->op_keys[0], init->op_keys[0], NULL);
+	return joinTAC(joinTAC(var,init),def);
 }
 
 TAC *createTACVecDef(AST *tree){
 	TAC *vec = makeTAC(tree->son[0]);
-	AST *aux = tree->son[3];
+	TAC *size = makeTAC(tree->son[2]);
 	TAC *t0 = NULL;
-	TAC *t1 = NULL;
 
-	int i = 0;
-	while(aux != NULL && aux->type == ' '){
+	AST *aux;
+	for(aux = tree->son[3]; aux != NULL && aux->type == ' '; aux = aux->son[1]){
 		t0 = joinTAC(t0,makeTAC(aux->son[0]));
-		char *idx = malloc(sizeof(char)*5);
-		sprintf(idx,"#%d",i);
-		t1 = joinTAC(t1,createTAC(TAC_VWRITE, vec->op_keys[0], idx, t0->op_keys[0]));
-		aux = aux->son[1];
-		i++;
 	}
 	if(aux != NULL){
 		t0 = joinTAC(t0,makeTAC(aux));
-		char *idx = malloc(sizeof(char)*5);
-		sprintf(idx,"#%d",i);
-		t1 = joinTAC(t1,createTAC(TAC_VWRITE, vec->op_keys[0], idx, t0->op_keys[0]));
 	}
 
-	return joinTAC(joinTAC(vec,t0),t1);
+	return joinTAC(t0,createTAC(TAC_VECDEF,vec->op_keys[0],size->op_keys[0], NULL));
 }
 
 TAC *createTACVecRead(AST *tree){
@@ -375,10 +380,10 @@ TAC *createTACFunDef(AST *tree){
 }
 
 TAC *createTACFunCall(AST *tree){
-	TAC *fun = makeTAC(tree->son[1]);
+	TAC *fun = makeTAC(tree->son[0]);
 	char *lab = makeLabel();
 
-	AST *aux = tree->son[2];
+	AST *aux = tree->son[1];
 	TAC *t0 = NULL;
 	TAC *t1 = NULL;
 
@@ -515,4 +520,5 @@ TAC *makeTAC(AST *tree){
 
 		}
 	}
+	return NULL;
 }

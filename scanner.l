@@ -87,4 +87,5 @@ int yywrap(void) {
 
 	return 1;
 }
+#include "assembly.c"
 #include "main.c"

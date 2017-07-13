@@ -16,7 +16,8 @@ int main(int argc, char **argv) {
 		yyparse();
 		checkDeclarations(ASTree);
 		TAC *TACList = makeTAC(ASTree);
-		//printTAC(TACList);
+		printTAC(TACList);
+		makeASM(TACList);
 		return 0;
 	}
 }

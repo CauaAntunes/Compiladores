@@ -1,0 +1,136 @@
+TAC_VARDEF a 0
+TAC_VARDEF i 0
+TAC_VECDEF v 10
+TAC_VECDEF mat 10
+TAC_VARDEF f 10.55
+TAC_VARDEF c 'x'
+TAC_VARDEF d 65
+TAC_FBEGIN main
+TAC_MOV a 10
+TAC_ADD __temp8 a 10
+TAC_SUB __temp9 1 a
+TAC_DIV __temp10 __temp8 __temp9
+TAC_VREAD __temp11 v __temp10
+TAC_VWRITE v 2 __temp11
+TAC_MOV i 1
+TAC_LABEL __label10
+TAC_GE __temp7 10 i
+TAC_JNZ __label11 __temp7
+TAC_PRINT i
+TAC_PRINT " "
+TAC_INC i
+TAC_JMP __label10
+TAC_LABEL __label11
+TAC_PRINT " Digite um numero: \n"
+TAC_READ i
+TAC_LABEL __label7
+TAC_LT __temp4 i 10
+TAC_JZ __label8 __temp4
+TAC_ARG a
+TAC_ARG 1
+TAC_CALL __temp6 incn
+TAC_MOV a __temp6
+TAC_ADD __temp5 i 1
+TAC_MOV i __temp5
+TAC_JMP __label7
+TAC_LABEL __label8
+TAC_PRINT "Incrementado algumas vezes fica "
+TAC_PRINT a
+TAC_PRINT "\n"
+TAC_EQ __temp3 a 5
+TAC_JZ __label6 __temp3
+TAC_PRINT "Parou no meio\n"
+TAC_LABEL __label6
+TAC_EQ __temp2 a 11
+TAC_JZ __label5 __temp2
+TAC_LABEL __label5
+TAC_EQ __temp1 a 11
+TAC_JZ __label3 __temp1
+TAC_JMP __label4
+TAC_LABEL __label3
+TAC_LABEL __label4
+TAC_FEND
+TAC_FBEGIN incn
+TAC_ADD __temp0 x n
+TAC_RET __temp0
+TAC_FEND
+TAC_FBEGIN voidfunc
+TAC_FEND
+TAC_FBEGINTAC_MOVTAC_VREADTAC_VWRITETAC_MOVTAC_GETAC_JNZTAC_PRINTTAC_PRINTTAC_JMPTAC_PRINTTAC_READTAC_LTTAC_JZTAC_ARGTAC_ARGTAC_CALLTAC_MOVTAC_MOVTAC_JMPTAC_PRINTTAC_PRINTTAC_PRINTTAC_EQTAC_JZTAC_PRINTTAC_EQTAC_JZTAC_EQTAC_JZTAC_JMPTAC_FENDTAC_FBEGINTAC_RETTAC_FENDTAC_FBEGINTAC_FEND	.globl a
+	.data
+	.align 4
+	.type a, @object
+	.size a, 4
+a:
+	.long 0
+	.globl i
+	.data
+	.align 4
+	.type i, @object
+	.size i, 4
+i:
+	.long 0
+	.globl v
+	.data
+	.align 4
+	.type v, @object
+	.size v, 40
+v:
+	.long 0
+	.long 0
+	.long 0
+	.long 0
+	.long 0
+	.long 0
+	.long 0
+	.long 0
+	.long 0
+	.long 0
+	.globl mat
+	.data
+	.align 4
+	.type mat, @object
+	.size mat, 40
+mat:
+	.globl f
+	.data
+	.align 4
+	.type f, @object
+	.size f, 4
+f:
+	.long 10
+	.globl c
+	.data
+	.align 4
+	.type c, @object
+	.size c, 4
+c:
+	.long 120
+	.globl d
+	.data
+	.align 4
+	.type d, @object
+	.size d, 4
+d:
+	.long 65
+	movl	a(%rip), %eax
+	addl	$10, %eax
+	movl	$1, %ebx
+	movl	a(%rip), %ecx
+	subl	%ebx, %ecx
+	movl	%ecx, %esi
+	cltd
+	idivl %esi
+.__label10:
+.__label11:
+.__label7:
+	movl	i(%rip), %ebx
+	addl	$1, %ebx
+.__label8:
+.__label6:
+.__label5:
+.__label3:
+.__label4:
+	movl	x(%rip), %ecx
+	movl	n(%rip), %edx
+	addl	%ecx, %edx

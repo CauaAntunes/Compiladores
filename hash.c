@@ -13,6 +13,7 @@ struct entry_s {
 	int data_type;
 	int params;
 	TAC *label;
+	int reg;
 	struct entry_s *next;
 };
 
@@ -142,6 +143,7 @@ entry_t *ht_newpair( char *key, char *value ) {
 	}
 
 	newpair->next = NULL;
+	newpair->reg = -1;
 
 	return newpair;
 }
