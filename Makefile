@@ -3,10 +3,10 @@
 #
 
 etapa5: y.tab.o lex.yy.c
-	cc y.tab.o -o etapa5 lex.yy.c -w
+	gcc y.tab.o -o etapa5 lex.yy.c -w
 
 y.tab.o: y.tab.c
-	cc -c y.tab.c -w
+	gcc -c y.tab.c -w
 
 y.tab.c: parser.y
 	yacc -d parser.y

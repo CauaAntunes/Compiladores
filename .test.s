@@ -52,6 +52,11 @@ add:
 	cltq
 	movl	c(,%rax,4), %eax
 	movl	%eax, b(%rip)
+	movl	c+4(%rip), %eax
+	movl	%eax, d(%rip)
+	movl	b(%rip), %eax
+	cltq
+	movl	$10, c(,%rax,4)
 	movl	-4(%rbp), %edx
 	movl	-8(%rbp), %eax
 	addl	%edx, %eax
@@ -71,15 +76,20 @@ main:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	movl	a(%rip), %edx
 	movl	b(%rip), %eax
-	cmpl	%eax, %edx
-	jge	.L4
+	cmpl	$9, %eax
+	jg	.L4
 	movl	a(%rip), %eax
 	addl	$1, %eax
 	movl	%eax, a(%rip)
 .L4:
-	movl	$1, d(%rip)
+	movl	$97, %edi
+	call	putchar
+	movl	$3, %edx
+	movl	$2, %esi
+	movl	$1, %edi
+	call	add
+	movl	%eax, d(%rip)
 	popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret

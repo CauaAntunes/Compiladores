@@ -9,11 +9,14 @@ int cococococ[3] = {1, 2, 3};
 int add(int n, int m, int j){
 	a = n + m;
 	b = c[a];
+	d = c[1];
+	c[b] = 10;
 	return n+m;
 }
 void main(){
-if(a<b){
+if(b<10){
   a++;
 }
-d = 1;
+printf("a");
+d = add(1,2,3);
 }
