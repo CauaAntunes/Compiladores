@@ -8,7 +8,7 @@ int c[3];
 int cococococ[3] = {1, 2, 3};
 int add(int n, int m, int j){
 	a = n + m;
-	b = a;
+	b = c[a];
 	return n+m;
 }
 void main(){

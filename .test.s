@@ -49,6 +49,8 @@ add:
 	addl	%edx, %eax
 	movl	%eax, a(%rip)
 	movl	a(%rip), %eax
+	cltq
+	movl	c(,%rax,4), %eax
 	movl	%eax, b(%rip)
 	movl	-4(%rbp), %edx
 	movl	-8(%rbp), %eax

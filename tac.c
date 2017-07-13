@@ -4,18 +4,14 @@
 #define	TAC_SUB		3
 #define	TAC_MUL		4
 #define	TAC_DIV		5
-#define	TAC_GT		6
-#define	TAC_LT		7
-#define	TAC_GE		8
-#define	TAC_LE		9
-#define	TAC_EQ		10
-#define	TAC_NE		11
-#define	TAC_AND		12
-#define	TAC_OR		13
-#define	TAC_NOT		14
+#define	TAC_CMP		6
+#define	TAC_JL		7
+#define	TAC_JLE		8
+#define	TAC_JG		9
+#define	TAC_JGE		10
+#define	TAC_JE		11
+#define	TAC_JNE		12
 #define	TAC_JMP		15
-#define	TAC_JZ		16
-#define	TAC_JNZ		17
 #define	TAC_MOV		18
 #define	TAC_CALL	19
 #define TAC_ARG		20
@@ -33,6 +29,7 @@
 int label = 0, temp = 0;
 
 TAC *makeTAC(AST *tree);
+TAC *createTACBoolean(AST *tree, char* labTrue, char* labFalse);
 
 TAC *createTAC(int type, char* op0, char* op1, char* op2){
 	TAC *t = (TAC*) malloc(sizeof(TAC));
@@ -73,35 +70,29 @@ void printTAC(TAC *tac){
 			case TAC_DIV:
 				printf("TAC_DIV"); break;
 
-			case TAC_GT:
-				printf("TAC_ADD"); break;
+			case TAC_CMP:
+				printf("TAC_CMP"); break;
 
-			case TAC_LT:
-				printf("TAC_LT"); break;
+			case TAC_JL:
+				printf("TAC_JL"); break;
 
-			case TAC_GE:
-				printf("TAC_GE"); break;
+			case TAC_JLE:
+				printf("TAC_JLE"); break;
 
-			case TAC_LE:
-				printf("TAC_LE"); break;
+			case TAC_JG:
+				printf("TAC_JG"); break;
 
-			case TAC_EQ:
-				printf("TAC_EQ"); break;
+			case TAC_JGE:
+				printf("TAC_JGE"); break;
 
-			case TAC_NE:
-				printf("TAC_NE"); break;
+			case TAC_JE:
+				printf("TAC_JE"); break;
 
-			case TAC_NOT:
-				printf("TAC_NOT"); break;
+			case TAC_JNE:
+				printf("TAC_JNE"); break;
 
 			case TAC_JMP:
 				printf("TAC_JMP"); break;
-
-			case TAC_JZ:
-				printf("TAC_JZ"); break;
-
-			case TAC_JNZ:
-				printf("TAC_JNZ"); break;
 
 			case TAC_MOV:
 				printf("TAC_MOV"); break;
@@ -192,38 +183,142 @@ TAC *createTACLabel(char *label){
 	return r;
 }
 
+TAC *createTACEqual(AST *tree, char* labTrue, char* labFalse){
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+
+	TAC *cmp = createTAC(TAC_CMP, op0->op_keys[0], op1->op_keys[0], NULL);
+
+	TAC *jmp;
+	if(labFalse == NULL){
+		jmp = createTAC(TAC_JE, labTrue, NULL, NULL);
+	} else {
+		jmp = createTAC(TAC_JNE, labFalse, NULL, NULL);
+	}
+
+	return joinTAC(joinTAC(joinTAC(op0,op1),cmp),jmp);
+}
+
+TAC *createTACGreater(AST *tree, char* labTrue, char* labFalse){
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+
+	TAC *cmp = createTAC(TAC_CMP, op0->op_keys[0], op1->op_keys[0], NULL);
+
+	TAC *jmp;
+	if(labFalse == NULL){
+		jmp = createTAC(TAC_JG, labTrue, NULL, NULL);
+	} else {
+		jmp = createTAC(TAC_JLE, labFalse, NULL, NULL);
+	}
+
+	return joinTAC(joinTAC(joinTAC(op0,op1),cmp),jmp);
+}
+
+TAC *createTACLess(AST *tree, char* labTrue, char* labFalse){
+	TAC *op0 = makeTAC(tree->son[0]);
+	TAC *op1 = makeTAC(tree->son[1]);
+
+	TAC *cmp = createTAC(TAC_CMP, op0->op_keys[0], op1->op_keys[0], NULL);
+
+	TAC *jmp;
+	if(labFalse == NULL){
+		jmp = createTAC(TAC_JL, labTrue, NULL, NULL);
+	} else {
+		jmp = createTAC(TAC_JGE, labFalse, NULL, NULL);
+	}
+
+	return joinTAC(joinTAC(joinTAC(op0,op1),cmp),jmp);
+}
+
+TAC *createTACAnd(AST *tree, char* labTrue, char* labFalse){
+	TAC *o1 = createTACBoolean(tree->son[1],labTrue,labFalse);
+	TAC *o0;
+	if(labFalse != NULL){
+		o0 = createTACBoolean(tree->son[0],NULL,labFalse);
+	} else {
+		char *end = makeLabel();
+		o0 = createTACBoolean(tree->son[0],NULL,end);
+		TAC *lend = createTACLabel(end);
+		o1 = joinTAC(o1,lend);
+	}
+	return joinTAC(o0,o1);
+}
+
+TAC *createTACOr(AST *tree, char* labTrue, char* labFalse){
+	TAC *o1 = createTACBoolean(tree->son[1],labTrue,labFalse);
+	TAC *o0;
+	if(labTrue != NULL){
+		o0 = createTACBoolean(tree->son[0],labTrue,NULL);
+	} else {
+		char *end = makeLabel();
+		o0 = createTACBoolean(tree->son[0],end,NULL);
+		TAC *lend = createTACLabel(end);
+		o1 = joinTAC(o1,lend);
+	}
+	return joinTAC(o0,o1);
+}
+
+TAC *createTACBoolean(AST *tree, char* labTrue, char* labFalse){
+	switch(tree->type){
+		case OPERATOR_LE:
+			return createTACGreater(tree, labFalse, labTrue);
+
+		case OPERATOR_GE:
+			return createTACLess(tree, labFalse, labTrue);
+
+		case OPERATOR_EQ:
+			return createTACEqual(tree, labTrue, labFalse);
+
+		case OPERATOR_NE:
+			return createTACEqual(tree, labFalse, labTrue);
+
+		case OPERATOR_AND:
+			return createTACAnd(tree, labTrue, labFalse);
+
+		case OPERATOR_OR:
+			return createTACOr(tree, labTrue, labFalse);
+
+		case '>':
+			return createTACGreater(tree, labTrue, labFalse);
+
+		case '<':
+			return createTACLess(tree, labTrue, labFalse);
+
+		case '!':
+			return createTACBoolean(tree->son[0], labFalse, labTrue);
+	}
+}
+
 TAC *createTACWhen(AST *tree){
 	char *end = makeLabel();
-	TAC *cond = makeTAC(tree->son[0]);
-	TAC *jmp = createTAC(TAC_JZ, end, cond->op_keys[0], NULL);
+	TAC *cond = createTACBoolean(tree->son[0], NULL, end);
 	TAC *body = makeTAC(tree->son[1]);
 	TAC *lab = createTACLabel(end);
-	return joinTAC(joinTAC(joinTAC(cond,jmp),body),lab);
+	return joinTAC(joinTAC(cond,body),lab);
 }
 
 TAC *createTACWhenElse(AST *tree){
 	char *els = makeLabel();
 	char *end = makeLabel();
-	TAC *cond = makeTAC(tree->son[0]);
-	TAC *jmp_els = createTAC(TAC_JZ, els, cond->op_keys[0], NULL);
+	TAC *cond = createTACBoolean(tree->son[0], NULL, els);
 	TAC *body = makeTAC(tree->son[1]);
 	TAC *jmp_end = createTAC(TAC_JMP, end, NULL, NULL);
 	TAC *lab_els = createTACLabel(els);
 	TAC *body_els = makeTAC(tree->son[2]);
 	TAC *lab_end = createTACLabel(end);
-	return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(cond,jmp_els),body),jmp_end),lab_els),body_els),lab_end);
+	return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(cond,body),jmp_end),lab_els),body_els),lab_end);
 }
 
 TAC *createTACWhile(AST *tree){
 	char *begin = makeLabel();
 	char *end = makeLabel();
 	TAC *lbgn = createTACLabel(begin);
-	TAC *cond = makeTAC(tree->son[0]);
-	TAC *j0 = createTAC(TAC_JZ, end, cond->op_keys[0], NULL);
+	TAC *cond = createTACBoolean(tree->son[0],NULL,end);
 	TAC *body = makeTAC(tree->son[1]);
-	TAC *j1 = createTAC(TAC_JMP, begin, NULL, NULL);
+	TAC *j = createTAC(TAC_JMP, begin, NULL, NULL);
 	TAC *lend = createTACLabel(end);
-	return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(lbgn,cond),j0),body),j1),lend);
+	return joinTAC(joinTAC(joinTAC(joinTAC(lbgn,cond),body),j),lend);
 }
 
 TAC *createTACFor(AST *tree){
@@ -238,8 +333,8 @@ TAC *createTACFor(AST *tree){
 
 	TAC *lbgn = createTACLabel(begin);
 	char *aux = makeTemp();
-	TAC *check = createTAC(TAC_GE, aux, max->op_keys[0], var->op_keys[0]);
-	TAC *jend = createTAC(TAC_JNZ, end, check->op_keys[0], NULL);
+	TAC *check = createTAC(TAC_CMP, var->op_keys[0], max->op_keys[0], NULL);
+	TAC *jend = createTAC(TAC_JGE, end, NULL, NULL);
 	TAC *body = makeTAC(tree->son[3]);
 	TAC *inc = createTAC(TAC_INC, var->op_keys[0], NULL, NULL);
 	TAC *jbgn = createTAC(TAC_JMP, begin, NULL, NULL);
@@ -248,7 +343,7 @@ TAC *createTACFor(AST *tree){
 	return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(var,init),mov),max),lbgn),check),jend),body),inc),jbgn),lend);
 }
 
-TAC *createTACOperation(AST *tree){
+TAC *createTACArithmetic(AST *tree){
 	TAC *op0 = makeTAC(tree->son[0]);
 	TAC *op1 = makeTAC(tree->son[1]);
 
@@ -266,48 +361,12 @@ TAC *createTACOperation(AST *tree){
 		case '/':	type = TAC_DIV;
 				break;
 
-		case '>':	type = TAC_GT;
-				break;
-
-		case '<':	type = TAC_LT;
-				break;
-
-		case OPERATOR_LE:
-				type = TAC_LE;
-				break;
-
-		case OPERATOR_GE:
-				type = TAC_GE;
-				break;
-
-		case OPERATOR_EQ:
-				type = TAC_EQ;
-				break;
-
-		case OPERATOR_NE:
-				type = TAC_NE;
-				break;
-
-		case OPERATOR_AND:
-				type = TAC_AND;
-				break;
-
-		case OPERATOR_OR:
-				type = TAC_OR;
-				break;
-
 	}
 
 	char *res = makeTemp();
 	TAC *tac = createTAC(type,res,op0->op_keys[0],op1->op_keys[0]);
 
 	return joinTAC(joinTAC(op0,op1),tac);
-}
-
-TAC *createTACNot(AST *tree){
-	TAC *op = makeTAC(tree->son[0]);
-	TAC *not = createTAC(TAC_NOT, op->op_keys[0], NULL, NULL);
-	return joinTAC(op,not);
 }
 
 TAC *createTACVarAssign(AST *tree){
@@ -495,22 +554,11 @@ TAC *makeTAC(AST *tree){
 			case ';':
 					return joinTAC(makeTAC(tree->son[0]),makeTAC(tree->son[1]));
 
-			case OPERATOR_LE:
-			case OPERATOR_GE:
-			case OPERATOR_EQ:
-			case OPERATOR_NE:
-			case OPERATOR_AND:
-			case OPERATOR_OR:
-			case '>':
-			case '<':
 			case '+':
 			case '-':
 			case '*':
 			case '/':
-					return createTACOperation(tree);
-
-			case '!':
-					return createTACNot(tree);
+					return createTACArithmetic(tree);
 
 			case '(':
 			case '{':

@@ -142,7 +142,7 @@ void asmDiv(TAC *tac){
 		strcat(prog,aux);
 	}
 
-	sprintf(aux,"\tcltd\n\tidivl %%esi\n");
+	sprintf(aux,"\tcltd\n\tidivl\t%%esi\n");
 	strcat(prog,aux);
 	
 	e = ht_get(ht, tac->op_keys[0]);
@@ -259,6 +259,12 @@ void asmVecDef(TAC *tac){
 	//}
 }
 
+void asmJL(TAC *tac){
+	char aux[32];
+	sprintf(aux,"\tjl\t.%s\n",tac->op_keys[0]);
+	strcat(prog, aux);
+}
+
 void makeASM(TAC *tac){
 	data = (char*) malloc(MAXSIZE);
 	prog = (char*) malloc(MAXSIZE);
@@ -282,35 +288,31 @@ void makeASM(TAC *tac){
 			case TAC_DIV:
 				asmDiv(tac); break;
 
-			case TAC_GT:
-				printf("TAC_ADD"); break;
+			case TAC_CMP:
+				printf("TAC_CMP"); break;
 
-			case TAC_LT:
-				printf("TAC_LT"); break;
+			case TAC_JL:
+				asmJL(tac); break; 
 
-			case TAC_GE:
-				printf("TAC_GE"); break;
+		/*****/
+			case TAC_JLE:
+				printf("TAC_JLE"); break;
 
-			case TAC_LE:
-				printf("TAC_LE"); break;
+			case TAC_JG:
+				printf("TAC_JG"); break;
 
-			case TAC_EQ:
-				printf("TAC_EQ"); break;
+			case TAC_JGE:
+				printf("TAC_JGE"); break;
 
-			case TAC_NE:
-				printf("TAC_NE"); break;
+			case TAC_JE:
+				printf("TAC_JE"); break;
 
-			case TAC_NOT:
-				printf("TAC_NOT"); break;
+			case TAC_JNE:
+				printf("TAC_JNE"); break;
 
 			case TAC_JMP:
 				printf("TAC_JMP"); break;
-
-			case TAC_JZ:
-				printf("TAC_JZ"); break;
-
-			case TAC_JNZ:
-				printf("TAC_JNZ"); break;
+		/*****/
 
 			case TAC_MOV:
 				asmMov(tac); break;
