@@ -77,31 +77,7 @@ main:
 	addl	$1, %eax
 	movl	%eax, a(%rip)
 .L4:
-	movl	a(%rip), %edx
-	movl	b(%rip), %eax
-	subl	%eax, %edx
-	movl	%edx, %eax
-	movl	d(%rip), %ecx
-	movl	a(%rip), %edx
-	subl	%edx, %ecx
-	movl	%ecx, %esi
-	cltd
-	idivl	%esi
-	movl	%eax, %ecx
-	movl	a(%rip), %edx
-	movl	b(%rip), %eax
-	imull	%edx, %eax
-	addl	%eax, %ecx
-	movl	b(%rip), %edx
-	movl	d(%rip), %eax
-	addl	%edx, %eax
-	addl	%eax, %ecx
-	movl	d(%rip), %edx
-	movl	a(%rip), %eax
-	subl	%eax, %edx
-	movl	%edx, %eax
-	addl	%ecx, %eax
-	movl	%eax, d(%rip)
+	movl	$1, d(%rip)
 	popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret

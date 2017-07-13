@@ -15,5 +15,5 @@ void main(){
 if(a<b){
   a++;
 }
-d = (a-b)/(d-a)+(a*b)+(b+d)-(a-d);
+d = 1;
 }
