@@ -27,7 +27,7 @@ void findReg(int *x1, int *x2){
 		for(i = 0; i < 4 && regs[i] != NULL; i++);
 		i %= 4;
 
-		if(*x2 == *x1) (*x2)++;
+		if(i == *x1) i++;
 
 		if (regs[i] != NULL){
 			sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+i, regs[i]);
@@ -300,24 +300,27 @@ void asmJMP(TAC *tac){
 
 void asmComp(TAC *tac){
 	char aux[64];
-	entry_t *e = ht_get(ht, tac->op_keys[0]);
-	entry_t *f = ht_get(ht, tac->op_keys[1]);
-	int re=e->reg,rf=f->reg;
-	if (e->reg < 0){
-		findReg(&re,NULL);
-		if(tac->op_keys[0][0] > '9' || tac->op_keys[0][0] < '0')
-			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[0], 'a'+re);
-		else sprintf(aux,"\tmovl\t$%s, %%e%cx\n", tac->op_keys[0], 'a'+re);
+	entry_t *e0 = ht_get(ht, tac->op_keys[0]);
+	entry_t *e1 = ht_get(ht, tac->op_keys[1]);
+	int r0 = e0->reg;
+	int r1 = e1->reg;
+	if (r1 < 0){
+		if(r0 < 0) findReg(&r1,NULL);
+		else findReg(&r0, &r1);
+
+		if(tac->op_keys[1][0] > '9' || tac->op_keys[1][0] < '0')
+			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[1], 'a'+r1);
+		else sprintf(aux,"\tmovl\t$%s, %%e%cx\n", tac->op_keys[1], 'a'+r1);
 		strcat(prog,aux);
 	}
-	if(tac->op_keys[1][0] > '9' || tac->op_keys[1][0] < '0'){
-		if (f->reg < 0){
-			findReg(&re,&rf);
-			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[1], 'a'+rf);
+	if(tac->op_keys[0][0] > '9' || tac->op_keys[0][0] < '0'){
+		if (r0 < 0){
+			findReg(&r1,&r0);
+			sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[0], 'a'+r0);
 			strcat(prog,aux);
 		}
-		sprintf(aux,"\tcmpl\t%%e%cx, %%e%cx\n",rf+'a', re+'a');	
-	} else sprintf(aux,"\tcmpl\t$%s, %%e%cx\n",tac->op_keys[1], re+'a');
+		sprintf(aux,"\tcmpl\t%%e%cx, %%e%cx\n",r0+'a', r1+'a');	
+	} else sprintf(aux,"\tcmpl\t$%s, %%e%cx\n",tac->op_keys[0], r1+'a');
 	strcat(prog,aux);
 }
 
