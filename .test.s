@@ -66,6 +66,12 @@ add:
 	.cfi_endproc
 .LFE0:
 	.size	add, .-add
+	.section	.rodata
+.LC0:
+	.string	"asdasd"
+.LC1:
+	.string	"%d"
+	.text
 	.globl	main
 	.type	main, @function
 main:
@@ -83,13 +89,26 @@ main:
 	addl	$1, %eax
 	movl	%eax, a(%rip)
 .L4:
-	movl	$97, %edi
-	call	putchar
+	movl	$.LC0, %edi
+	movl	$0, %eax
+	call	printf
+	movl	b(%rip), %eax
+	movl	d(%rip), %ecx
+	cltd
+	idivl	%ecx
+	movl	%eax, a(%rip)
 	movl	$3, %edx
 	movl	$2, %esi
 	movl	$1, %edi
 	call	add
 	movl	%eax, d(%rip)
+	movl	d(%rip), %eax
+	movl	%eax, %esi
+	movl	$.LC1, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$115, %edi
+	call	putchar
 	popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret

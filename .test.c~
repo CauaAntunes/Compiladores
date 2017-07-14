@@ -17,6 +17,9 @@ void main(){
 if(b<10){
   a++;
 }
-printf("a");
-d = 1;
+printf("asdasd");
+a = b/c;
+d = add(1,2,3);
+printf("%d",d);
+printf("s");
 }

@@ -1,6 +1,6 @@
-#define MAXSIZE 1024
+#define MAXSIZE 1024*1024
 
-int printNumber = 0;
+int str = 1;
 char *regs[4] = {NULL};
 char* data;
 char* prog;
@@ -208,7 +208,7 @@ void asmInc(TAC *tac){
 void asmVarDef(TAC *tac){
 	char aux[256];
 	if(tac->op_keys[1] != NULL){
-		sprintf(aux,"\t.globl %s\n\t.align 4\n\t.type %s, @object\n\t.size %s, 4\n%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], tac->op_keys[0]);
+		sprintf(aux,"\t.globl\t%s\n\t.align\t4\n\t.type\t%s, @object\n\t.size\t%s, 4\n%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], tac->op_keys[0]);
 		strcat(data,aux);
 
 		int value;
@@ -221,7 +221,7 @@ void asmVarDef(TAC *tac){
 			}
 		//}
 
-		sprintf(aux,"\t.long %d\n",value);
+		sprintf(aux,"\t.long\t%d\n",value);
 		strcat(data,aux);
 	} else {
 		sprintf(aux,"\t.comm\t%s,4,4\n",tac->op_keys[0]);
@@ -232,7 +232,7 @@ void asmVarDef(TAC *tac){
 void asmVecDef(TAC *tac){
 	char aux[256];
 	if(tac->prev != NULL && tac->prev->type == TAC_SYMBOL){
-		sprintf(aux,"\t.globl %s\n\t.align 4\n\t.type %s, @object\n\t.size %s, %d\n%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], atoi(tac->op_keys[1])*4,tac->op_keys[0]);
+		sprintf(aux,"\t.globl\t%s\n\t.align\t4\n\t.type\t%s, @object\n\t.size\t%s, %d\n%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], atoi(tac->op_keys[1])*4,tac->op_keys[0]);
 		strcat(data,aux);
 
 		TAC *t;
@@ -246,7 +246,7 @@ void asmVecDef(TAC *tac){
 			} else {
 				value = atoi(t->op_keys[0]);
 			}
-			sprintf(aux,"\t.long %d\n",value);
+			sprintf(aux,"\t.long\t%d\n",value);
 			strcat(data,aux);
 		}
 		//}
@@ -324,6 +324,47 @@ void asmComp(TAC *tac){
 	strcat(prog,aux);
 }
 
+void asmPrint(TAC *tac){
+	char aux[64];
+	if(tac->op_keys[0][0] == '\''){
+		sprintf(aux,"\tmovl\t$%d, %%edi\n\tcall\tputchar\n",tac->op_keys[0][1]);
+		strcat(prog,aux);
+	} else {
+		entry_t *e = ht_get(ht, tac->op_keys[0]);
+
+		if(tac->op_keys[0][0] == '"'){
+			if(e->reg < 0){
+				e->reg = str;
+				str++;
+				sprintf(aux,".str%d:\n\t.string\t%s\n",e->reg,tac->op_keys[0]);
+				strcat(data,aux);
+			}
+			sprintf(aux,"\tmovl\t$.str%d, %%edi\n",e->reg);
+		} else if(e->reg < 0){
+			sprintf(aux,"\tmovl\t%s(%%rip), %%esi\n\tmovl\t$.str0, %%edi\n",tac->op_keys[0]);
+		} else {
+			sprintf(aux,"\tmovl\t%%e%cx, %%esi\n\tmovl\t$.str0, %%edi\n",'a'+e->reg);
+			regs[e->reg] = NULL;
+			e->reg = -1;
+		}
+		strcat(prog,aux);
+
+		if(regs[0] != NULL && e->reg != 0){
+			sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n", regs[0]);
+			entry_t *e0 = ht_get(ht,regs[0]);
+			regs[0] = NULL;
+			e0->reg = -1;
+		}
+
+		sprintf(aux,"\tmovl\t$0, %%eax\n\tcall\tprintf\n");
+		strcat(prog,aux);
+	}
+}
+
+void asmRead(TAC *tac){
+
+}
+
 void makeASM(TAC *tac){
 	data = (char*) malloc(MAXSIZE);
 	prog = (char*) malloc(MAXSIZE);
@@ -390,7 +431,7 @@ void makeASM(TAC *tac){
 				printf("TAC_FEND"); break;
 
 			case TAC_PRINT:
-				printf("TAC_PRINT"); break;
+				asmPrint(tac); break;
 
 			case TAC_READ:
 				printf("TAC_READ"); break;
@@ -414,7 +455,7 @@ void makeASM(TAC *tac){
 			default: break;
 		}
 	}
-	printf("\t.data\n%s", data);
+	printf("\t.data\n%s.str0:\n\t.string\t\"%%d\"\n", data);
 	printf("\t.text\n%s", prog);
 }
 
