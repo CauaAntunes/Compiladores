@@ -448,7 +448,7 @@ void makeASM(TAC *tac){
 				asmPrint(tac); break;
 
 			case TAC_READ:
-				printf("TAC_READ"); break;
+				asmRead(tac); break;
 
 			case TAC_VWRITE:
 				printf("TAC_VWRITE"); break;
