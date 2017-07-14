@@ -18,7 +18,7 @@ if(b<10){
   a++;
 }
 printf("asdasd");
-a = b/c;
+a = b/d;
 d = add(1,2,3);
 printf("%d",d);
 printf("s");

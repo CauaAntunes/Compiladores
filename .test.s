@@ -102,11 +102,10 @@ main:
 	movl	$1, %edi
 	call	add
 	movl	%eax, d(%rip)
-	movl	d(%rip), %eax
-	movl	%eax, %esi
+	movl	$d, %esi
 	movl	$.LC1, %edi
 	movl	$0, %eax
-	call	printf
+	call	__isoc99_scanf
 	movl	$115, %edi
 	call	putchar
 	popq	%rbp

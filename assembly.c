@@ -353,7 +353,7 @@ void asmPrint(TAC *tac){
 			sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n", regs[0]);
 			entry_t *e0 = ht_get(ht,regs[0]);
 			regs[0] = NULL;
-			e0->reg = -1;
+			e0->reg = -2;
 		}
 
 		sprintf(aux,"\tmovl\t$0, %%eax\n\tcall\tprintf\n");
@@ -362,7 +362,21 @@ void asmPrint(TAC *tac){
 }
 
 void asmRead(TAC *tac){
+	char aux[128];
 
+	if(regs[0] != NULL){
+			entry_t *e = ht_get(ht,tac->op_keys[0]);
+			if(e->reg != 0){
+				sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n", regs[0]);
+				strcat(prog,aux);
+				entry_t *e0 = ht_get(ht,regs[0]);
+				regs[0] = NULL;
+				e0->reg = -2;
+			}
+			e->reg = -1;
+	}
+	sprintf(aux,"\tmovl\t$%s, %%esi\n\tmovl\t$.str0, %%edi\n\tmovl\t$0, %%eax\n\tcall\t__isoc99_scanf\n",tac->op_keys[0]);
+	strcat(prog,aux);
 }
 
 void makeASM(TAC *tac){

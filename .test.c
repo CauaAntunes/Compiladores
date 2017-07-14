@@ -20,6 +20,6 @@ if(b<10){
 printf("asdasd");
 a = b/d;
 d = add(1,2,3);
-printf("%d",d);
+scanf("%d",&d);
 printf("s");
 }
