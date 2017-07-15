@@ -379,6 +379,42 @@ void asmRead(TAC *tac){
 	strcat(prog,aux);
 }
 
+void asmVWrite(TAC *tac){
+	char aux[64], vec[128];
+	entry_t *e0 = ht_get(ht, tac->op_keys[0]);
+	entry_t *e1 = ht_get(ht, tac->op_keys[1]);
+	entry_t *e2 = ht_get(ht, tac->op_keys[2]);
+	int r0 = e0->reg;
+	int r1 = e1->reg;
+	int r2 = e2->reg;
+	if(tac->op_keys[1][1] <= 'a' || tac->op_keys[1][1] >= 'z'){             // se 2ºparam = var
+		sprintf(aux,"\tmovl\t%s(%%rip), %%eax\n\tcltq\n", tac->op_keys[1]);
+		strcat(prog,aux);
+		if(tac->op_keys[1][2] <= 'a' || tac->op_keys[1][2] >= 'z'){			// se 3ºparam = var
+			sprintf(aux,"\tcltq\n\tmovl\t%%e%cx, %s(,%%rax,4)\n", 'a'+r2, vec);
+			strcat(prog,aux);
+		}
+		else if(tac->op_keys[1][2] > '9' || tac->op_keys[1][2] < '0'){      // se 3ºparam = num
+			sprintf(aux,"\tcltq\n\tmovl\t$%s, %s(,%%rax,4)\n", tac->op_keys[2], vec);
+			strcat(prog,aux);
+		}
+	}
+	else if (tac->op_keys[1][1] > '9' || tac->op_keys[1][1] < '0'){          // se 2ºparam = num
+		if(tac->op_keys[1][2] <= 'a' || tac->op_keys[1][2] >= 'z'){           
+			sprintf(aux,"\tcltq\n\tmovl\t%%e%cx, %s+%d(%%rip)\n", 'a'+r2, vec, 4 * tac->op_keys[1]);
+			strcat(prog,aux);
+		}
+		else if(tac->op_keys[1][2] > '9' || tac->op_keys[1][2] < '0'){
+			sprintf(aux,"\tcltq\n\tmovl\t$%s, %s+%d(%%rip)\n",  tac->op_keys[2], vec, 4 *  tac->op_keys[1]);
+			strcat(prog,aux);
+		}
+	}	
+}
+
+void asmVRead(TAC *tac){
+	
+}
+
 void makeASM(TAC *tac){
 	data = (char*) malloc(MAXSIZE);
 	prog = (char*) malloc(MAXSIZE);
