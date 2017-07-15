@@ -385,7 +385,7 @@ void asmFBegin(TAC *tac){
 
 	sprintf(aux,"\t.text\n\t.globl\t%s\n\t.type\t%s, @function\n%s:\n.%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], lbl);
 	strcat(prog, aux);
-	strcat(prog,"\t.cfi_startproc\n\tpushq\t%rbp\n\t.cfi_def_cfa_offset 16\n\t.cfi_offset 6, -16\n\tmovq\t%rsp, %rbp\n\t.cfi_def_cfa_register 6\n");
+	strcat(prog,"\t.cfi_startproc\n\tpushq\t%rbp\n\t.cfi_def_cfa_offset 16\n\t.cfi_offset 6, -16\n\tmovq\t%%rsp, %%rbp\n\t.cfi_def_cfa_register 6\n");
 }
 
 void makeASM(TAC *tac){
