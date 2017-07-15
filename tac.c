@@ -419,23 +419,24 @@ TAC *createTACFunDef(AST *tree){
 	TAC *fun = makeTAC(tree->son[1]);
 	char *lab = makeLabel();
 
-	/*AST *aux = tree->son[2];
-	TAC *t = fun;
+	AST *aux = tree->son[2];
+	TAC *t = NULL;
 
 	while(aux != NULL && aux->type == ','){
-		t = joinTAC(t,makeTAC(aux->son[0]));
+		t = joinTAC(t,createTAC(TAC_SYMBOL,aux->son[0]->son[1]->hash_key,NULL,NULL));
 		aux = aux->son[1];
 	}
-	t = joinTAC(t,makeTAC(aux));
+	if (aux != NULL)
+		t = joinTAC(t,createTAC(TAC_SYMBOL,aux->son[1]->hash_key,NULL,NULL));
 
-	TAC *lbgn = createTACLabel(lab);
+	/*TAC *lbgn = createTACLabel(lab);
 
 	ht_get(ht,fun->op_keys[0])->label = lbgn;*/
 
 	TAC *begin = createTAC(TAC_FBEGIN, fun->op_keys[0], NULL, NULL);
 	TAC *body = makeTAC(tree->son[3]);
 	TAC *end = createTAC(TAC_FEND, NULL, NULL, NULL);
-	return joinTAC(joinTAC(joinTAC(fun,begin),body),end);
+	return joinTAC(joinTAC(joinTAC(joinTAC(t,fun),begin),body),end);
 }
 
 TAC *createTACFunCall(AST *tree){

@@ -388,6 +388,80 @@ void asmFBegin(TAC *tac){
 	strcat(prog,"\t.cfi_startproc\n\tpushq\t%rbp\n\t.cfi_def_cfa_offset 16\n\t.cfi_offset 6, -16\n\tmovq\t%rsp, %rbp\n\t.cfi_def_cfa_register 6\n");
 }
 
+void asmVWrite(TAC *tac){
+	char aux[64];
+
+	entry_t *e2 = ht_get(ht, tac->op_keys[2]);
+	if(e2->reg == 0){
+		findReg(&(e2->reg), &(e2->reg));
+		regs[0] = NULL;
+	}
+
+	if (tac->op_keys[1][0] > '9' || tac->op_keys[1][0] < '0'){
+		// se 2ºparam = var
+
+		entry_t *e1 = ht_get(ht, tac->op_keys[1]);
+		if(e1 != 0){
+			if(regs[0] != NULL){
+				sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n",regs[0]);
+				strcat(prog,aux);
+				entry_t *e = ht_get(ht, regs[0]);
+				e->reg = -2;
+				regs[0] = NULL;
+			}
+
+			if(e1->reg < 0){
+				sprintf(aux,"\tmovl\t%s(%%rip), %%eax\n", tac->op_keys[1]);
+			} else {
+				sprintf(aux,"\tmovl\t%%e%cx, %%eax\n", 'a'+e1->reg);
+			}
+			strcat(prog,aux);
+			e1->reg = 0;
+		}
+
+		if(tac->op_keys[2][0] > '9' || tac->op_keys[2][0] < '0'){
+			// se 3ºparam = var
+			if(e2->reg < 0){
+				findReg(&(e1->reg), &(e2->reg));
+				sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[2], 'a'+e2->reg);
+				strcat(prog,aux);
+				regs[e2->reg] = NULL;
+			}
+
+			sprintf(aux,"\tcltq\n\tmovl\t%%e%cx, %s(,%%rax,4)\n", 'a'+e2->reg, tac->op_keys[0]);
+		} else {
+			// se 3ºparam = num
+			sprintf(aux,"\tcltq\n\tmovl\t$%s, %s(,%%rax,4)\n", tac->op_keys[2], tac->op_keys[0]);
+		}
+		strcat(prog,aux);
+
+		e1->reg = -1;
+		e2->reg = -1;
+	} else {
+		// se 2ºparam = num
+		if(tac->op_keys[2][0] > '9' || tac->op_keys[2][0] < '0'){
+			// se 3ºparam = var
+			if(e2->reg < 0){
+				findReg(&(e2->reg), NULL);
+				sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[2], 'a'+e2->reg);
+				strcat(prog,aux);
+				regs[e2->reg] = NULL;
+			}
+
+			sprintf(aux,"\tmovl\t%%e%cx, %s+%d(%%rip)\n", 'a'+e2->reg, tac->op_keys[0], 4*atoi(tac->op_keys[1]));
+			e2->reg = -1;
+		} else {
+			// se 3ºparam = num
+			sprintf(aux,"\tcltq\n\tmovl\t$%s, %s+%d(%%rip)\n\n", tac->op_keys[2], tac->op_keys[0], 4*atoi(tac->op_keys[1]));
+		}
+		strcat(prog,aux);
+	}	
+}
+
+void asmVRead(TAC *tac){
+	
+}
+
 void makeASM(TAC *tac){
 	data = (char*) malloc(MAXSIZE);
 	prog = (char*) malloc(MAXSIZE);
@@ -460,8 +534,7 @@ void makeASM(TAC *tac){
 				asmRead(tac); break;
 
 			case TAC_VWRITE:
-				printf("TAC_VWRITE"); break;
-			// tac: 1o param nome vetor 2o param posicao e 3o var temporaria
+				asmVWrite(tac); break;
 
 			case TAC_VREAD:
 				printf("TAC_VREAD"); break;
