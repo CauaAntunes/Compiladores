@@ -367,7 +367,7 @@ void asmRead(TAC *tac){
 	if(regs[0] != NULL){
 			entry_t *e = ht_get(ht,tac->op_keys[0]);
 			if(e->reg != 0){
-				sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n", regs[0]);
+				sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n", regs[0]); 
 				strcat(prog,aux);
 				entry_t *e0 = ht_get(ht,regs[0]);
 				regs[0] = NULL;
@@ -389,7 +389,7 @@ void asmFBegin(TAC *tac){
 }
 
 void asmVWrite(TAC *tac){
-	char aux[64];
+	
 
 	entry_t *e2 = ht_get(ht, tac->op_keys[2]);
 	if(e2->reg == 0){
@@ -459,7 +459,29 @@ void asmVWrite(TAC *tac){
 }
 
 void asmVRead(TAC *tac){
-	
+	char aux[64];
+	int var;
+	entry_t *e1 = ht_get(ht, tac->op_keys[1]);
+	if(regs[0] != NULL){
+		sprintf(aux,"\tmovl\t%s(%%rip), %%eax\n", tac->op_keys[1]);
+		strcat(prog,aux);
+		if(e1 != 0){
+		sprintf(aux,"\tcltq\n\tmovl\t$%s(%%rip), %%eax\n", 'a'+e1->reg, tac->op_keys[1]);
+		strcat(prog,aux);
+		e1->reg = -1
+		}
+		var = tac->op_keys[0];
+		reg = ht_get(ht, tac->op_keys[0]);
+		sprintf(aux,"\tmovl\t%s(%%rip), %%eax\n", tac->op_keys[0]);
+		strcat(prog,aux);
+		if(e1->reg != 0){
+			sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n", regs[0]);
+			strcat(prog,aux);
+			regs[0] = NULL;
+			e1->reg = -1;
+		}
+		e1->reg = +1;
+	}
 }
 
 void makeASM(TAC *tac){
