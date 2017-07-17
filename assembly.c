@@ -49,7 +49,7 @@ void asmLabel(TAC *tac){
 void asmArithmetic(TAC *tac){
 	char aux[64];
 	int i;
-	int x[2] = {0,-1};
+	int x[2] = {-1, -1};
 
 	entry_t *e1 = ht_get(ht, tac->op_keys[1]);
 	if(e1->reg < 0){
@@ -389,19 +389,21 @@ void asmFBegin(TAC *tac){
 }
 
 void asmVWrite(TAC *tac){
-	
+	char aux[64];
 
 	entry_t *e2 = ht_get(ht, tac->op_keys[2]);
-	if(e2->reg == 0){
-		findReg(&(e2->reg), &(e2->reg));
-		regs[0] = NULL;
-	}
 
 	if (tac->op_keys[1][0] > '9' || tac->op_keys[1][0] < '0'){
 		// se 2ºparam = var
+		if(e2->reg == 0){
+			findReg(&(e2->reg), &(e2->reg));
+			regs[0] = NULL;
+			sprintf(aux, "\tmovl\t%%eax, %%e%cx\n",'a'+e2->reg);
+			strcat(prog,aux);
+		}
 
 		entry_t *e1 = ht_get(ht, tac->op_keys[1]);
-		if(e1 != 0){
+		if(e1->reg != 0){
 			if(regs[0] != NULL){
 				sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n",regs[0]);
 				strcat(prog,aux);
@@ -413,6 +415,7 @@ void asmVWrite(TAC *tac){
 			if(e1->reg < 0){
 				sprintf(aux,"\tmovl\t%s(%%rip), %%eax\n", tac->op_keys[1]);
 			} else {
+				regs[e1->reg] = NULL;
 				sprintf(aux,"\tmovl\t%%e%cx, %%eax\n", 'a'+e1->reg);
 			}
 			strcat(prog,aux);
@@ -452,7 +455,7 @@ void asmVWrite(TAC *tac){
 			e2->reg = -1;
 		} else {
 			// se 3ºparam = num
-			sprintf(aux,"\tcltq\n\tmovl\t$%s, %s+%d(%%rip)\n\n", tac->op_keys[2], tac->op_keys[0], 4*atoi(tac->op_keys[1]));
+			sprintf(aux,"\tmovl\t$%s, %s+%d(%%rip)\n\n", tac->op_keys[2], tac->op_keys[0], 4*atoi(tac->op_keys[1]));
 		}
 		strcat(prog,aux);
 	}	
@@ -461,26 +464,40 @@ void asmVWrite(TAC *tac){
 void asmVRead(TAC *tac){
 	char aux[64];
 	int var;
-	entry_t *e1 = ht_get(ht, tac->op_keys[1]);
-	if(regs[0] != NULL){
-		sprintf(aux,"\tmovl\t%s(%%rip), %%eax\n", tac->op_keys[1]);
-		strcat(prog,aux);
-		if(e1 != 0){
-		sprintf(aux,"\tcltq\n\tmovl\t$%s(%%rip), %%eax\n", 'a'+e1->reg, tac->op_keys[1]);
-		strcat(prog,aux);
-		e1->reg = -1
-		}
-		var = tac->op_keys[0];
-		reg = ht_get(ht, tac->op_keys[0]);
-		sprintf(aux,"\tmovl\t%s(%%rip), %%eax\n", tac->op_keys[0]);
-		strcat(prog,aux);
-		if(e1->reg != 0){
-			sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n", regs[0]);
+	
+	if (tac->op_keys[2][0] > '9' || tac->op_keys[2][0] < '0'){
+		entry_t *e2 = ht_get(ht, tac->op_keys[2]);
+
+		if(e2->reg != 0){
+			if(regs[0] != NULL){
+				sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n",regs[0]);
+				strcat(prog,aux);
+				entry_t *e = ht_get(ht, regs[0]);
+				e->reg = -2;
+			}
+
+			if(e2->reg < 0){
+				sprintf(aux,"\tmovl\t%s(%%rip), %%eax\n", tac->op_keys[2]);
+			} else {
+				regs[e2->reg] = NULL;
+				sprintf(aux,"\tmovl\t%%e%cx, %%eax\n", 'a'+e2->reg);
+			}
 			strcat(prog,aux);
-			regs[0] = NULL;
-			e1->reg = -1;
 		}
-		e1->reg = +1;
+		sprintf(aux, "\tcltq\n\tmovl\t%s(,%%rax,4), %%eax\n", tac->op_keys[1]);
+		strcat(prog, aux);
+
+		entry_t *e0 = ht_get(ht, tac->op_keys[0]);
+		regs[0] = tac->op_keys[0];
+		e0->reg = 0;
+		e2->reg = -1;
+	} else {
+		entry_t *e0 = ht_get(ht, tac->op_keys[0]);
+		findReg(&(e0->reg), NULL);
+		regs[e0->reg] = tac->op_keys[0];
+
+		sprintf(aux,"\tmovl\t%s+%d(%%rip), %%e%cx\n",tac->op_keys[1], 4*atoi(tac->op_keys[2]), 'a'+e0->reg);
+		strcat(prog,aux);
 	}
 }
 
@@ -535,19 +552,19 @@ void makeASM(TAC *tac){
 				asmMov(tac); break;
 
 			case TAC_CALL:
-				printf("TAC_CALL"); break;
+				printf("TAC_CALL\n"); break;
 
 			case TAC_ARG:
-				printf("TAC_ARG"); break;
+				printf("TAC_ARG\n"); break;
 
 			case TAC_RET:
-				printf("TAC_RET"); break;
+				printf("TAC_RET\n"); break;
 
 			case TAC_FBEGIN:
 				asmFBegin(tac); break;
 
 			case TAC_FEND:
-				printf("TAC_FEND"); break;
+				printf("TAC_FEND\n"); break;
 
 			case TAC_PRINT:
 				asmPrint(tac); break;
@@ -559,7 +576,7 @@ void makeASM(TAC *tac){
 				asmVWrite(tac); break;
 
 			case TAC_VREAD:
-				printf("TAC_VREAD"); break;
+				asmVRead(tac); break;
 
 			case TAC_INC:
 				asmInc(tac); break;
@@ -572,6 +589,14 @@ void makeASM(TAC *tac){
 
 			default: break;
 		}
+		/*printf("%s",data);
+		data[0] = 0;
+		printf("%s",prog);
+		prog[0] = 0;
+		int i;
+		for(i = 0; i < 4; i++)
+			if(regs[i] != NULL)
+			printf("%%e%cx: %s\n",'a'+i,regs[i]);*/
 	}
 	printf("\t.data\n%s.str0:\n\t.string\t\"%%d\"\n", data);
 	printf("%s", prog);

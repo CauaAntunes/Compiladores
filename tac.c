@@ -381,7 +381,7 @@ TAC *createTACVecAssign(AST *tree){
 	TAC *op1 = makeTAC(tree->son[1]);
 	TAC *op2 = makeTAC(tree->son[2]);
 	TAC *vw = createTAC(TAC_VWRITE, op0->op_keys[0], op1->op_keys[0], op2->op_keys[0]);
-	return joinTAC(joinTAC(joinTAC(op0,op1),op2),vw);
+	return joinTAC(joinTAC(joinTAC(op2,op1),op0),vw);
 }
 
 TAC *createTACVarDef(AST *tree){
