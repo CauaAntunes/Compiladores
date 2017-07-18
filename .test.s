@@ -44,10 +44,18 @@ add:
 	movl	%edi, -4(%rbp)
 	movl	%esi, -8(%rbp)
 	movl	%edx, -12(%rbp)
+	movl	%ecx, -16(%rbp)
+	movl	%r8d, -20(%rbp)
 	movl	-4(%rbp), %edx
 	movl	-8(%rbp), %eax
 	addl	%edx, %eax
 	movl	%eax, a(%rip)
+	movl	a(%rip), %eax
+	cmpl	-4(%rbp), %eax
+	jle	.L2
+	movl	$0, %eax
+	jmp	.L3
+.L2:
 	movl	a(%rip), %eax
 	cltq
 	movl	c(,%rax,4), %eax
@@ -60,6 +68,7 @@ add:
 	movl	-4(%rbp), %edx
 	movl	-8(%rbp), %eax
 	addl	%edx, %eax
+.L3:
 	popq	%rbp
 	.cfi_def_cfa 7, 8
 	ret
@@ -84,11 +93,11 @@ main:
 	.cfi_def_cfa_register 6
 	movl	b(%rip), %eax
 	cmpl	$9, %eax
-	jg	.L4
+	jg	.L5
 	movl	a(%rip), %eax
 	addl	$1, %eax
 	movl	%eax, a(%rip)
-.L4:
+.L5:
 	movl	$.LC0, %edi
 	movl	$0, %eax
 	call	printf
@@ -97,6 +106,8 @@ main:
 	cltd
 	idivl	%ecx
 	movl	%eax, a(%rip)
+	movl	$0, %r8d
+	movl	$0, %ecx
 	movl	$3, %edx
 	movl	$2, %esi
 	movl	$1, %edi

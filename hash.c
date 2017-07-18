@@ -5,6 +5,11 @@
 #include "tac.h"
 //Cauã Antunes e Gabriela Pagnoncelli
 
+struct s_parlist{
+	char* param;
+	struct s_parlist *next;
+};
+
 struct entry_s {
 	char *key;
 	char *value;
@@ -12,6 +17,7 @@ struct entry_s {
 	int nature;
 	int data_type;
 	int params;
+	struct s_parlist *parlist;
 	TAC *label;
 	int reg;
 	struct entry_s *next;
