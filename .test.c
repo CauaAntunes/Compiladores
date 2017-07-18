@@ -13,6 +13,10 @@ int add(int n, int m, int j, int z, int w){
 	b = c[a];
 	d = c[1];
 	c[b] = 10;
+	printf("%d",n);
+	printf("  ");
+	printf("%d",m);
+	printf(" \n");
 	return n+m;
 }
 void main(){

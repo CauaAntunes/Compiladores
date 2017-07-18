@@ -488,11 +488,11 @@ TAC *createTACPrint(AST *tree){
 
 	while(aux != NULL && aux->type == ' '){
 		t0 = joinTAC(t0,makeTAC(aux->son[0]));
-		t1 = joinTAC(t1,createTAC(TAC_PRINT, t0->op_keys[0], NULL, NULL));
+		t0 = joinTAC(t0,createTAC(TAC_PRINT, t0->op_keys[0], NULL, NULL));
 		aux = aux->son[1];
 	}
 	t0 = joinTAC(t0,makeTAC(aux));
-	t1 = joinTAC(t1,createTAC(TAC_PRINT, t0->op_keys[0], NULL, NULL));
+	t0 = joinTAC(t0,createTAC(TAC_PRINT, t0->op_keys[0], NULL, NULL));
 
 	return joinTAC(t0,t1);
 }

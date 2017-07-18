@@ -6,6 +6,19 @@ char* data;
 char* prog;
 char* endlbl;
 
+void memTemp(){
+	int i;
+	for(i = 0; i < temp; i++){
+		char aux[64];
+		sprintf(aux,"__temp%d",i);
+		entry_t *e = ht_get(ht, aux);
+		if(e->reg == -2){
+			printf(aux,"\t.comm\t__temp%d,4,4\n",i);
+			strcat(data,aux);
+		}
+	}
+}
+
 void findReg(int *x1, int *x2){
 	char aux[64];
 
@@ -425,20 +438,22 @@ void asmPrint(TAC *tac){
 				strcat(data,aux);
 			}
 			sprintf(aux,"\tmovl\t$.str%d, %%edi\n",e->reg);
-		} else if(e->reg < 0){
-			if(tac->op_keys[0][0] > '9' || tac->op_keys[0][0] < '0'){
+		} else if(tac->op_keys[0][0] > '9' || tac->op_keys[0][0] < '0'){
+			if(e->reg < 0){
+				findReg(&(e->reg), NULL);
 				if(e->nature == NAT_PAR){
-					sprintf(aux,"\tmovl\t-%d(%%rbp), %%esi\n\tmovl\t$.str0, %%edi\n",4*e->params);
+					sprintf(aux,"\tmovl\t-%d(%%rbp), %%e%cx\n",4*e->params,'a'+e->reg);
 				} else {
-					sprintf(aux,"\tmovl\t%s(%%rip), %%esi\n\tmovl\t$.str0, %%edi\n",tac->op_keys[0]);
+					sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n",tac->op_keys[0],'a'+e->reg);
 				}
-			} else {
-				sprintf(aux,"\tmovl\t$%d, %%esi\n\tmovl\t$.str0, %%edi\n",atoi(tac->op_keys[0]));
+				strcat(prog,aux);
 			}
-		} else {
+
 			sprintf(aux,"\tmovl\t%%e%cx, %%esi\n\tmovl\t$.str0, %%edi\n",'a'+e->reg);
 			regs[e->reg] = NULL;
 			e->reg = -1;
+		} else {
+			sprintf(aux,"\tmovl\t$%d, %%esi\n\tmovl\t$.str0, %%edi\n",atoi(tac->op_keys[0]));
 		}
 		strcat(prog,aux);
 
@@ -839,6 +854,7 @@ void makeASM(TAC *tac){
 			if(regs[i] != NULL)
 			printf("%%e%cx: %s\n",'a'+i,regs[i]);*/
 	}
+	memTemp();
 	printf("\t.data\n%s.str0:\n\t.string\t\"%%d\"\n", data);
 	printf("%s", prog);
 }

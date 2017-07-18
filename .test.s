@@ -30,6 +30,13 @@ cococococ:
 	.long	1
 	.long	2
 	.long	3
+	.section	.rodata
+.LC0:
+	.string	"%d"
+.LC1:
+	.string	"  "
+.LC2:
+	.string	" "
 	.text
 	.globl	add
 	.type	add, @function
@@ -41,6 +48,7 @@ add:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
+	subq	$32, %rsp
 	movl	%edi, -4(%rbp)
 	movl	%esi, -8(%rbp)
 	movl	%edx, -12(%rbp)
@@ -65,21 +73,34 @@ add:
 	movl	b(%rip), %eax
 	cltq
 	movl	$10, c(,%rax,4)
+	movl	-4(%rbp), %eax
+	movl	%eax, %esi
+	movl	$.LC0, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$.LC1, %edi
+	movl	$0, %eax
+	call	printf
+	movl	-8(%rbp), %eax
+	movl	%eax, %esi
+	movl	$.LC0, %edi
+	movl	$0, %eax
+	call	printf
+	movl	$.LC2, %edi
+	call	puts
 	movl	-4(%rbp), %edx
 	movl	-8(%rbp), %eax
 	addl	%edx, %eax
 .L3:
-	popq	%rbp
+	leave
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
 .LFE0:
 	.size	add, .-add
 	.section	.rodata
-.LC0:
+.LC3:
 	.string	"asdasd"
-.LC1:
-	.string	"%d"
 	.text
 	.globl	main
 	.type	main, @function
@@ -98,7 +119,7 @@ main:
 	addl	$1, %eax
 	movl	%eax, a(%rip)
 .L5:
-	movl	$.LC0, %edi
+	movl	$.LC3, %edi
 	movl	$0, %eax
 	call	printf
 	movl	b(%rip), %eax
@@ -114,7 +135,7 @@ main:
 	call	add
 	movl	%eax, d(%rip)
 	movl	$d, %esi
-	movl	$.LC1, %edi
+	movl	$.LC0, %edi
 	movl	$0, %eax
 	call	__isoc99_scanf
 	movl	$115, %edi
