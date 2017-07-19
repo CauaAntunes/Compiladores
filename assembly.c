@@ -13,7 +13,7 @@ void memTemp(){
 		sprintf(aux,"__temp%d",i);
 		entry_t *e = ht_get(ht, aux);
 		if(e->reg == -2){
-			printf(aux,"\t.comm\t__temp%d,4,4\n",i);
+			sprintf(aux,"\t.comm\t__temp%d,4,4\n",i);
 			strcat(data,aux);
 		}
 	}
@@ -72,7 +72,6 @@ void asmLabel(TAC *tac){
 
 void asmArithmetic(TAC *tac){
 	char aux[64];
-	int i;
 	int x[2] = {-1, -1};
 
 	entry_t *e1 = ht_get(ht, tac->op_keys[1]);
@@ -124,7 +123,10 @@ void asmArithmetic(TAC *tac){
 				break;
 
 			case TAC_SUB:
-				sprintf(aux,"\tsubl\t%%e%cx, %%e%cx\n",'a'+x[0],'a'+x[1]);
+				sprintf(aux,"\tsubl\t%%e%cx, %%e%cx\n",'a'+x[1],'a'+x[0]);
+				int i = x[1];
+				x[1] = x[0];
+				x[0] = i; 
 				break;
 
 			case TAC_MUL:
@@ -536,6 +538,13 @@ void asmFBegin(TAC *tac){
 	strcat(prog, aux);
 	strcat(prog,"\t.cfi_startproc\n\tpushq\t%rbp\n\t.cfi_def_cfa_offset 16\n\t.cfi_offset 6, -16\n\tmovq\t%rsp, %rbp\n\t.cfi_def_cfa_register 6\n");
 
+	entry_t *e = ht_get(ht, tac->op_keys[0]);
+	if(e->params > 0){
+		int i = 0.75+e->params/4.0;
+		sprintf(aux,"\tsubq\t$%d, %%rsp\n",16*i);
+		strcat(prog,aux);
+	}
+
 	TAC *taux;
 	for(taux = tac->prev; taux->type == TAC_SYMBOL; taux = taux->prev){
 		sprintf(aux,"\tmovl\t%s(%%rip), %%eax\n\tmovl\t%%eax,-%d(%%rbp)\n",taux->op_keys[0],4*ht_get(ht,taux->op_keys[0])->params);
@@ -597,7 +606,7 @@ void asmRet(TAC *tac){
 void asmFEnd(TAC *tac){
 	char aux[256];
 	char *lbl = makeLabel();
-	sprintf(aux,".%s:\n\tpopq\t%rbp\n\t.cfi_def_cfa 7, 8\n\tret\n\t.cfi_endproc\n.%s:\n.size\t%s, .-%s\n", endlbl, lbl, tac->op_keys[0], tac->op_keys[0]);
+	sprintf(aux,".%s:\n\tleave\n\t.cfi_def_cfa 7, 8\n\tret\n\t.cfi_endproc\n.%s:\n.size\t%s, .-%s\n", endlbl, lbl, tac->op_keys[0], tac->op_keys[0]);
 	strcat(prog,aux);
 }
 

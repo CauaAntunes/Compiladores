@@ -2,7 +2,7 @@
 
 a: short 0;
 i: long 0;
-v: long [10] 0 0 0 0 0 0 0 0 0 0; 
+v: long [10] 1 1 1 1 1 1 1 1 1 1; 
 mat: long[10]; 
 f: float 10.55;
 c: byte 'x';
@@ -12,9 +12,10 @@ d: byte 65;
 long main()
   {
   a = 5;
-  v#2 = 1;
-  for (i = 1 to 10)
-    print i " " 0 "\n";
+  for (i = 1 to 9){
+	v#i = v[i-1] * i;
+    print i " " i-1 " " 1-i " " a-i " " i-a " " v[i] "\n";
+};
 
   print " Digite um numero: \n";
   read i;
@@ -37,6 +38,7 @@ long main()
   };
 
 long incn (long x, long n){
+print x " " n "\n";
   return x+n;
 };
 

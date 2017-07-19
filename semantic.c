@@ -16,6 +16,8 @@ int count(int s_type, AST *tree){
 			r++;
 			tree = tree->son[1];
 		}
+		if(tree != NULL) r++;
+
 		return r;
 	} else return 0;
 }

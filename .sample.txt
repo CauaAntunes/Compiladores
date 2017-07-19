@@ -14,14 +14,14 @@ long main()
   a = 5;
   for (i = 1 to 9){
 	v#i = v[i-1] * i;
-    print i " " v[i] "\n";
+    print i " " i-1 " " 1-i " " a-i " " i-a " " v[i] "\n";
 };
 
   print " Digite um numero: \n";
   read i;
   while (i <= 10)
     {
-    a = incn(a,1);
+    a = incn(a,1,0,0,0);
     i = i + 1;
     print i " " a "\n";
     };
@@ -37,7 +37,8 @@ long main()
   {};
   };
 
-long incn (long x, long n){
+long incn (long x, long n, long y, long z, long w){
+print x " " n "\n";
   return x+n;
 };
 

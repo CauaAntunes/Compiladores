@@ -48,16 +48,23 @@ add:
 	.cfi_offset 6, -16
 	movq	%rsp, %rbp
 	.cfi_def_cfa_register 6
-	subq	$32, %rsp
+	subq	$16, %rsp
 	movl	%edi, -4(%rbp)
 	movl	%esi, -8(%rbp)
-	movl	%edx, -12(%rbp)
-	movl	%ecx, -16(%rbp)
-	movl	%r8d, -20(%rbp)
-	movl	-4(%rbp), %edx
-	movl	-8(%rbp), %eax
-	addl	%edx, %eax
+	movl	a(%rip), %eax
+	movl	$1, %edx
+	subl	%eax, %edx
+	movl	%edx, %eax
 	movl	%eax, a(%rip)
+	movl	a(%rip), %eax
+	subl	$1, %eax
+	movl	%eax, a(%rip)
+	movl	b(%rip), %edx
+	movl	a(%rip), %eax
+	subl	%eax, %edx
+	movl	%edx, %eax
+	movl	%eax, a(%rip)
+	movl	$1, a(%rip)
 	movl	a(%rip), %eax
 	cmpl	-4(%rbp), %eax
 	jle	.L2
@@ -98,6 +105,23 @@ add:
 	.cfi_endproc
 .LFE0:
 	.size	add, .-add
+	.globl	v
+	.type	v, @function
+v:
+.LFB1:
+	.cfi_startproc
+	pushq	%rbp
+	.cfi_def_cfa_offset 16
+	.cfi_offset 6, -16
+	movq	%rsp, %rbp
+	.cfi_def_cfa_register 6
+	movl	$0, %eax
+	popq	%rbp
+	.cfi_def_cfa 7, 8
+	ret
+	.cfi_endproc
+.LFE1:
+	.size	v, .-v
 	.section	.rodata
 .LC3:
 	.string	"asdasd"
@@ -105,7 +129,7 @@ add:
 	.globl	main
 	.type	main, @function
 main:
-.LFB1:
+.LFB2:
 	.cfi_startproc
 	pushq	%rbp
 	.cfi_def_cfa_offset 16
@@ -114,11 +138,11 @@ main:
 	.cfi_def_cfa_register 6
 	movl	b(%rip), %eax
 	cmpl	$9, %eax
-	jg	.L5
+	jg	.L7
 	movl	a(%rip), %eax
 	addl	$1, %eax
 	movl	%eax, a(%rip)
-.L5:
+.L7:
 	movl	$.LC3, %edi
 	movl	$0, %eax
 	call	printf
@@ -127,9 +151,6 @@ main:
 	cltd
 	idivl	%ecx
 	movl	%eax, a(%rip)
-	movl	$0, %r8d
-	movl	$0, %ecx
-	movl	$3, %edx
 	movl	$2, %esi
 	movl	$1, %edi
 	call	add
@@ -144,7 +165,7 @@ main:
 	.cfi_def_cfa 7, 8
 	ret
 	.cfi_endproc
-.LFE1:
+.LFE2:
 	.size	main, .-main
 	.ident	"GCC: (Ubuntu 4.9.2-10ubuntu13) 4.9.2"
 	.section	.note.GNU-stack,"",@progbits
