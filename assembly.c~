@@ -803,26 +803,7 @@ void asmVRead(TAC *tac){
 		strcat(prog,aux);
 	}
 }
-/* FUNÇÃO CAGADA A SER DESCAGADA
-void deadStoreElimination(TAC *tac){
-	for(; tac->next != NULL; tac = tac->next);
 
-	TAC *lastAssign = NULL;
-	int reads = 0;
-	for(; tac->prev != NULL; tac = tac->prev){
-		if(tac->type == TAC_MOV){
-			TAC *aux;
-			for(aux = tac->prev; aux != NULL && aux->type != TAC_LABEL && (tac->type < TAC_JL || tac->type > TAC_JMP); aux = aux->prev){
-				
-			}
-		}
-		if(tac->type == TAC_LABEL || (tac->type >= TAC_JL && tac->type <= TAC_JMP)){
-			lastAssign = NULL;
-			reads = 0;
-		}
-	}
-}
-*/
 void makeASM(TAC *tac){
 	data = (char*) malloc(MAXSIZE);
 	prog = (char*) malloc(MAXSIZE);
