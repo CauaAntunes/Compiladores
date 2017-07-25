@@ -1,10 +1,10 @@
 #define	TAC_SYMBOL	0
 #define	TAC_LABEL	1
-#define	TAC_ADD		2
-#define	TAC_SUB		3
-#define	TAC_MUL		4
-#define	TAC_DIV		5
-#define	TAC_CMP		6
+#define	TAC_ADD		2	// LEITURA
+#define	TAC_SUB		3	// LEITURA
+#define	TAC_MUL		4	// LEITURA
+#define	TAC_DIV		5	// LEITURA
+#define	TAC_CMP		6	// LEITURA
 #define	TAC_JL		7
 #define	TAC_JLE		8
 #define	TAC_JG		9
@@ -12,14 +12,14 @@
 #define	TAC_JE		11
 #define	TAC_JNE		12
 #define	TAC_JMP		15
-#define	TAC_MOV		18
+#define	TAC_MOV		18	// LEITURA + ESCRITA
 #define	TAC_CALL	19
-#define TAC_ARG		20
-#define	TAC_RET		21
+#define TAC_ARG		20	// LEITURA
+#define	TAC_RET		21	// LEITURA
 #define	TAC_FBEGIN	22
 #define	TAC_FEND	23
-#define	TAC_PRINT	24
-#define	TAC_READ	25
+#define	TAC_PRINT	24	// LEITURA
+#define	TAC_READ	25	// ESCRITA
 #define	TAC_VWRITE	26
 #define	TAC_VREAD	27
 #define	TAC_INC		28
@@ -147,7 +147,7 @@ void printTAC(TAC *tac){
 
 char *makeLabel(){
 	char *lab = (char*) malloc(sizeof(char)*13);
-	sprintf(lab,"__label%d",label);
+	sprintf(lab,".label%d",label);
 	ht_set(ht,lab,lab);
 	label++;
 	return lab;
@@ -155,7 +155,7 @@ char *makeLabel(){
 
 char *makeTemp(){
 	char *lab = (char*) malloc(sizeof(char)*12);
-	sprintf(lab,"__temp%d",temp);
+	sprintf(lab,".temp%d",temp);
 	ht_set(ht,lab,lab);
 	temp++;
 	return lab;
@@ -291,7 +291,7 @@ TAC *createTACBoolean(AST *tree, char* labTrue, char* labFalse){
 }
 
 TAC *createTACWhen(AST *tree){
-		if (tree->son[1]==NULL){
+	if (tree->son[1] != NULL){
 		char *end = makeLabel();
 		TAC *cond = createTACBoolean(tree->son[0], NULL, end);
 		TAC *body = makeTAC(tree->son[1]);
@@ -324,7 +324,7 @@ TAC *createTACWhenElse(AST *tree){
 }
 
 TAC *createTACWhile(AST *tree){
-	if (tree->son[1]==NULL){
+	if (tree->son[1] != NULL){
 		char *begin = makeLabel();
 		char *end = makeLabel();
 		TAC *lbgn = createTACLabel(begin);
@@ -347,12 +347,12 @@ TAC *createTACFor(AST *tree){
 	TAC *lend = createTACLabel(end);
 	TAC *lbgn = createTACLabel(begin);
 	if (tree->son[3] == NULL){
-		TAC *cmp  = createTAC(TAC_CMP, init, max, NULL);
+		TAC *cmp  = createTAC(TAC_CMP, init->op_keys[0], max->op_keys[0], NULL);
 		TAC *jge = createTAC(TAC_JGE, begin, NULL, NULL);
-		TAC *mov = createTAC(TAC_MOV, var, init, NULL);
+		TAC *mov = createTAC(TAC_MOV, var->op_keys[0], init->op_keys[0], NULL);
 		TAC *jmp = createTAC(TAC_JMP, end, NULL, NULL); 
 		// entre -> lbgn
-		TAC *movl = createTAC(TAC_MOV, var, max, NULL);
+		TAC *movl = createTAC(TAC_MOV, var->op_keys[0], max->op_keys[0], NULL);
 		
  		return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(cmp, jge), mov), jmp), lbgn), movl), lend);
 	} else {

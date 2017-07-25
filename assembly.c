@@ -10,10 +10,10 @@ void memTemp(){
 	int i;
 	for(i = 0; i < temp; i++){
 		char aux[64];
-		sprintf(aux,"__temp%d",i);
+		sprintf(aux,".temp%d",i);
 		entry_t *e = ht_get(ht, aux);
 		if(e->reg == -2){
-			sprintf(aux,"\t.comm\t__temp%d,4,4\n",i);
+			sprintf(aux,"\t.comm\t.temp%d,4,4\n",i);
 			strcat(data,aux);
 		}
 	}
@@ -30,7 +30,7 @@ void findReg(int *x1, int *x2){
 		if (regs[i] != NULL){
 			entry_t *e = ht_get(ht, regs[i]);
 
-			if(regs[i][0] == '_'){
+			if(regs[i][0] == '.'){
 				sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+i, regs[i]);
 				strcat(prog,aux);
 			}
@@ -49,7 +49,7 @@ void findReg(int *x1, int *x2){
 		if (regs[i] != NULL){
 			entry_t *e = ht_get(ht, regs[i]);
 
-			if(regs[i][0] == '_'){
+			if(regs[i][0] == '.'){
 				sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n", 'a'+i, regs[i]);
 				strcat(prog,aux);
 			}
@@ -72,7 +72,7 @@ void clearReg(){
 
 void asmLabel(TAC *tac){
 	char aux[16];
-	sprintf(aux,".%s:\n",tac->op_keys[0]);
+	sprintf(aux,"%s:\n",tac->op_keys[0]);
 	strcat(prog,aux);
 	clearReg();
 }
@@ -185,7 +185,7 @@ void asmDiv(TAC *tac){
 			}
 		} else {
 			sprintf(aux,"\tmovl\t%%e%cx, %%esi\n",'a'+e->reg);
-			if(e->reg == 0 || e->reg == 3 || tac->op_keys[2][0] == '_'){
+			if(e->reg == 0 || e->reg == 3 || tac->op_keys[2][0] == '.'){
 				regs[e->reg] = NULL;
 				e->reg = -1;
 			}
@@ -201,7 +201,7 @@ void asmDiv(TAC *tac){
 	for(i = 0; i < 4; i+=3)
 		if(i != e->reg && regs[i] != NULL){
 			entry_t *e0 = ht_get(ht, regs[i]);
-			if(regs[i][0] == '_'){
+			if(regs[i][0] == '.'){
 				sprintf(aux,"\tmovl\t%%e%cx, %s(%%rip)\n",'a'+i,regs[i]);
 				strcat(prog,aux);
 			}
@@ -223,7 +223,7 @@ void asmDiv(TAC *tac){
 		strcat(prog,aux);
 	} else if (e->reg > 0){
 		sprintf(aux,"\tmovl\t%%e%cx, %%eax\n",'a'+e->reg);
-		if(e->reg == 3 || tac->op_keys[2][0] == '_'){
+		if(e->reg == 3 || tac->op_keys[2][0] == '.'){
 			regs[e->reg] = NULL;
 			e->reg = -1;
 		}
@@ -354,43 +354,43 @@ void asmVecDef(TAC *tac){
 
 void asmJL(TAC *tac){
 	char aux[32];
-	sprintf(aux,"\tjl\t.%s\n",tac->op_keys[0]);
+	sprintf(aux,"\tjl\t%s\n",tac->op_keys[0]);
 	strcat(prog, aux);
 }
 
 void asmJLE(TAC *tac){
 	char aux[32];
-	sprintf(aux,"\tjle\t.%s\n",tac->op_keys[0]);
+	sprintf(aux,"\tjle\t%s\n",tac->op_keys[0]);
 	strcat(prog, aux);
 }
 
 void asmJG(TAC *tac){
 	char aux[32];
-	sprintf(aux,"\tjg\t.%s\n",tac->op_keys[0]);
+	sprintf(aux,"\tjg\t%s\n",tac->op_keys[0]);
 	strcat(prog, aux);
 }
 
 void asmJGE(TAC *tac){
 	char aux[32];
-	sprintf(aux,"\tjge\t.%s\n",tac->op_keys[0]);
+	sprintf(aux,"\tjge\t%s\n",tac->op_keys[0]);
 	strcat(prog, aux);
 }
 
 void asmJE(TAC *tac){
 	char aux[32];
-	sprintf(aux,"\tje\t.%s\n",tac->op_keys[0]);
+	sprintf(aux,"\tje\t%s\n",tac->op_keys[0]);
 	strcat(prog, aux);
 }
 
 void asmJNE(TAC *tac){
 	char aux[32];
-	sprintf(aux,"\tjne\t.%s\n",tac->op_keys[0]);
+	sprintf(aux,"\tjne\t%s\n",tac->op_keys[0]);
 	strcat(prog, aux);
 }
 
 void asmJMP(TAC *tac){
 	char aux[32];
-	sprintf(aux,"\tjmp\t.%s\n",tac->op_keys[0]);
+	sprintf(aux,"\tjmp\t%s\n",tac->op_keys[0]);
 	strcat(prog, aux);
 }
 
@@ -398,6 +398,8 @@ void asmComp(TAC *tac){
 	char aux[64];
 	entry_t *e0 = ht_get(ht, tac->op_keys[0]);
 	entry_t *e1 = ht_get(ht, tac->op_keys[1]);
+	if(e0 == NULL) printf("\n\ncagou: %s\n\n", tac->op_keys[0]);
+	if(e1 == NULL) printf("\n\ncagou: %s\n\n", tac->op_keys[1]);
 	int r0 = e0->reg;
 	int r1 = e1->reg;
 
@@ -414,14 +416,14 @@ void asmComp(TAC *tac){
 				sprintf(aux,"\tmovl\t%s(%%rip), %%e%cx\n", tac->op_keys[1], 'a'+r1);
 			}
 
-			if(tac->op_keys[1][0] != '_'){
+			if(tac->op_keys[1][0] != '.'){
 				e1->reg = r1;
 				regs[r1] = tac->op_keys[1];
 			}
 		} else sprintf(aux,"\tmovl\t$%d, %%e%cx\n", atoi(tac->op_keys[1]), 'a'+r1);
 		strcat(prog,aux);
 	} else {
-		if(tac->op_keys[1][0] == '_'){
+		if(tac->op_keys[1][0] == '.'){
 			e1->reg = -1;
 			regs[r1] = NULL;
 		}
@@ -439,12 +441,12 @@ void asmComp(TAC *tac){
 			}
 			strcat(prog,aux);
 
-			if(tac->op_keys[0][0] != '_'){
+			if(tac->op_keys[0][0] != '.'){
 				e0->reg = r0;
 				regs[r0] = tac->op_keys[0];
 			}
 		} else {
-			if(tac->op_keys[0][0] == '_'){
+			if(tac->op_keys[0][0] == '.'){
 				e0->reg = -1;
 				regs[r0] = NULL;
 			}
@@ -491,7 +493,7 @@ void asmPrint(TAC *tac){
 
 		if(regs[0] != NULL && e->reg != 0){
 			entry_t *e0 = ht_get(ht,regs[0]);
-			if(regs[0][0] == '_'){
+			if(regs[0][0] == '.'){
 				sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n", regs[0]);
 				strcat(prog,aux);
 			}
@@ -507,17 +509,21 @@ void asmPrint(TAC *tac){
 void asmRead(TAC *tac){
 	char aux[128];
 
+	entry_t *e = ht_get(ht,tac->op_keys[0]);
 	if(regs[0] != NULL){
-		entry_t *e = ht_get(ht,tac->op_keys[0]);
 		if(e->reg != 0){
 			entry_t *e0 = ht_get(ht,regs[0]);
-			if(regs[0][0] == '_'){
+			if(regs[0][0] == '.'){
 				sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n", regs[0]);
 				strcat(prog,aux);
 			}
 			regs[0] = NULL;
 			e0->reg = -2;
 		}
+	}
+
+	if(e->reg >= 0){
+		regs[e->reg] = NULL;
 		e->reg = -1;
 	}
 	sprintf(aux,"\tmovl\t$%s, %%esi\n\tmovl\t$.str0, %%edi\n\tmovl\t$0, %%eax\n\tcall\t__isoc99_scanf\n",tac->op_keys[0]);
@@ -550,18 +556,16 @@ void asmCall(TAC *tac){
 	sprintf(aux,"\tcall\t%s\n",tac->op_keys[1]);
 	strcat(prog,aux);
 
+	clearReg();
 	ht_get(ht, tac->op_keys[0])->reg = 0;
 	regs[0] = tac->op_keys[0];
-	regs[1] = NULL;
-	regs[2] = NULL;
-	regs[3] = NULL;
 }
 
 void asmFBegin(TAC *tac){
 	char aux[128];
 	char *lbl = makeLabel();
 
-	sprintf(aux,"\t.text\n\t.globl\t%s\n\t.type\t%s, @function\n%s:\n.%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], lbl);
+	sprintf(aux,"\t.text\n\t.globl\t%s\n\t.type\t%s, @function\n%s:\n%s:\n", tac->op_keys[0], tac->op_keys[0], tac->op_keys[0], lbl);
 	strcat(prog, aux);
 	strcat(prog,"\t.cfi_startproc\n\tpushq\t%rbp\n\t.cfi_def_cfa_offset 16\n\t.cfi_offset 6, -16\n\tmovq\t%rsp, %rbp\n\t.cfi_def_cfa_register 6\n");
 
@@ -592,7 +596,7 @@ void asmRet(TAC *tac){
 	if(regs[0] != NULL){
 		if(e->reg != 0){
 			entry_t *e0 = ht_get(ht,regs[0]);
-			if(regs[0][0] == '_'){
+			if(regs[0][0] == '.'){
 				sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n", regs[0]); 
 				strcat(prog,aux);
 			}
@@ -630,7 +634,7 @@ void asmRet(TAC *tac){
 	TAC *taux;
 	for(taux = tac->next; taux->type == TAC_LABEL; taux = taux->next);
 	if(taux->type != TAC_FEND){
-		sprintf(aux,"\tjmp\t.%s\n", endlbl);
+		sprintf(aux,"\tjmp\t%s\n", endlbl);
 		strcat(prog,aux);
 	}
 }
@@ -638,7 +642,7 @@ void asmRet(TAC *tac){
 void asmFEnd(TAC *tac){
 	char aux[256];
 	char *lbl = makeLabel();
-	sprintf(aux,".%s:\n\tleave\n\t.cfi_def_cfa 7, 8\n\tret\n\t.cfi_endproc\n.%s:\n.size\t%s, .-%s\n", endlbl, lbl, tac->op_keys[0], tac->op_keys[0]);
+	sprintf(aux,"%s:\n\tleave\n\t.cfi_def_cfa 7, 8\n\tret\n\t.cfi_endproc\n%s:\n.size\t%s, .-%s\n", endlbl, lbl, tac->op_keys[0], tac->op_keys[0]);
 	strcat(prog,aux);
 }
 
@@ -660,7 +664,7 @@ void asmVWrite(TAC *tac){
 		if(e1->reg != 0){
 			if(regs[0] != NULL){
 				entry_t *e = ht_get(ht, regs[0]);
-				if(regs[0] == '_'){
+				if(regs[0] == '.'){
 					sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n",regs[0]);
 					strcat(prog,aux);
 				}
@@ -697,12 +701,12 @@ void asmVWrite(TAC *tac){
 				regs[e2->reg] = tac->op_keys[2];
 			}
 
-			if(tac->op_keys[2][0] == '_'){
+			sprintf(aux,"\tcltq\n\tmovl\t%%e%cx, %s(,%%rax,4)\n", 'a'+e2->reg, tac->op_keys[0]);
+
+			if(tac->op_keys[2][0] == '.'){
 				regs[e2->reg] = NULL;
 				e2->reg = -1;
 			}
-
-			sprintf(aux,"\tcltq\n\tmovl\t%%e%cx, %s(,%%rax,4)\n", 'a'+e2->reg, tac->op_keys[0]);
 		} else {
 			// se 3ºparam = num
 			sprintf(aux,"\tcltq\n\tmovl\t$%d, %s(,%%rax,4)\n", atoi(tac->op_keys[2]), tac->op_keys[0]);
@@ -736,13 +740,12 @@ void asmVWrite(TAC *tac){
 				regs[e2->reg] = tac->op_keys[2];
 			}
 
-			if(tac->op_keys[2][0] == '_'){
+			sprintf(aux,"\tmovl\t%%e%cx, %s+%d(%%rip)\n", 'a'+e2->reg, tac->op_keys[0], 4*i);
+
+			if(tac->op_keys[2][0] == '.'){
 				regs[e2->reg] = NULL;
 				e2->reg = -1;
 			}
-
-			sprintf(aux,"\tmovl\t%%e%cx, %s+%d(%%rip)\n", 'a'+e2->reg, tac->op_keys[0], 4*i);
-			e2->reg = -1;
 		} else {
 			// se 3ºparam = num
 			sprintf(aux,"\tmovl\t$%d, %s+%d(%%rip)\n\n", atoi(tac->op_keys[2]), tac->op_keys[0], 4*i);
@@ -761,7 +764,7 @@ void asmVRead(TAC *tac){
 		if(e2->reg != 0){
 			if(regs[0] != NULL){
 				entry_t *e = ht_get(ht, regs[0]);
-				if(regs[0][0] == '_'){
+				if(regs[0][0] == '.'){
 					sprintf(aux,"\tmovl\t%%eax, %s(%%rip)\n",regs[0]);
 					strcat(prog,aux);
 				}
@@ -803,32 +806,133 @@ void asmVRead(TAC *tac){
 		strcat(prog,aux);
 	}
 }
-/* FUNÇÃO CAGADA A SER DESCAGADA
-void deadStoreElimination(TAC *tac){
-	for(; tac->next != NULL; tac = tac->next);
 
-	TAC *lastAssign = NULL;
-	int reads = 0;
-	for(; tac->prev != NULL; tac = tac->prev){
-		if(tac->type == TAC_MOV){
-			TAC *aux;
-			for(aux = tac->prev; aux != NULL && aux->type != TAC_LABEL && (tac->type < TAC_JL || tac->type > TAC_JMP); aux = aux->prev){
-				
+void removeTemp(TAC *tac, char *tmp){
+	for(; tac != NULL; tac = tac->prev){
+		if(strcmp(tmp,tac->op_keys[0]) == 0){
+			if(tac->type == TAC_CALL){
+
+			} else {
+				if(tac->op_keys[1][0] == '.'){
+					removeTemp(tac->prev, tac->op_keys[1]);
+				}
+				if(tac->op_keys[2][0] == '.'){
+					removeTemp(tac->prev, tac->op_keys[2]);
+				}
+
+				if(tac->prev != NULL)
+					tac->prev->next = tac->next;
+				if(tac->next != NULL)
+					tac->next->prev = tac->prev;
+				free(tac);
 			}
-		}
-		if(tac->type == TAC_LABEL || (tac->type >= TAC_JL && tac->type <= TAC_JMP)){
-			lastAssign = NULL;
-			reads = 0;
+			break;
 		}
 	}
 }
-*/
+
+int deadStoreElimination(TAC *tac){
+	int c = 0;
+	for(; tac->next != NULL; tac = tac->next);
+
+	for(; tac->prev != NULL; tac = tac->prev){
+		if(tac->type == TAC_MOV || tac->type == TAC_READ){
+			TAC *aux;
+			for(aux = tac->prev; aux != NULL; aux = aux->prev){
+				if(aux->type == TAC_FBEGIN || aux->type == TAC_CALL || aux->type == TAC_RET || (aux->type >= TAC_JL && aux->type <= TAC_JMP)){
+					break;
+				} else if(aux->type >= TAC_ADD && aux->type <= TAC_DIV){
+					if(strcmp(tac->op_keys[0],aux->op_keys[1]) == 0 || strcmp(tac->op_keys[0],aux->op_keys[1]) == 0)
+							break;
+				} else if(aux->type == TAC_CMP){
+					if(strcmp(tac->op_keys[0],aux->op_keys[0]) == 0 || strcmp(tac->op_keys[0],aux->op_keys[1]) == 0)
+							break;
+				} else if(aux->type == TAC_MOV){
+					if(strcmp(tac->op_keys[0],aux->op_keys[0]) == 0){
+						if(aux->op_keys[1][0] == '.')
+							removeTemp(aux->prev, aux->op_keys[1]);
+
+						TAC *next = aux->next;
+						if(aux->prev != NULL)
+							aux->prev->next = aux->next;
+						if(aux->next != NULL)
+							aux->next->prev = aux->prev;
+						free(aux);
+						aux = next;
+						c++;
+
+					} else if(strcmp(tac->op_keys[0],aux->op_keys[1]) == 0){
+						break;
+					}
+				} else if(aux->type == TAC_PRINT){
+					if(strcmp(tac->op_keys[0],aux->op_keys[0]) == 0)
+						break;
+				} /*else if(aux->type == TAC_READ){
+					if(strcmp(tac->op_keys[0],aux->op_keys[0]) == 0){
+						if(aux->prev != NULL)
+							aux->prev->next = aux->next;
+						if(aux->next != NULL)
+							aux->next->prev = aux->prev;
+						free(aux);
+					}
+				}*/
+			}
+		}
+	}
+	return c;
+}
+
+int deadJumpElimination(TAC *tac){
+	int c = 0;
+	for(; tac->next != NULL; tac = tac->next);
+
+	for(; tac->prev != NULL; tac = tac->prev){
+		if(tac->type >= TAC_JL && tac->type <= TAC_JMP){
+			TAC *aux;
+			for(aux = tac->next; aux->type == TAC_LABEL && strcmp(tac->op_keys[0],aux->op_keys[0]) != 0; aux = aux->next);
+
+			if(aux->type == TAC_LABEL){
+
+				TAC *next = tac->next;
+				TAC *prev = tac->prev;
+
+				if(prev != NULL){
+					if(prev->type == TAC_CMP){
+						if(prev->op_keys[1][0] == '.')
+							removeTemp(prev->prev, prev->op_keys[1]);
+						if(prev->op_keys[0][0] == '.')
+							removeTemp(prev->prev, prev->op_keys[0]);
+						prev = prev->prev;
+						free(prev->next);
+					}
+					prev->next = next;
+				}
+
+				if(next != NULL)
+					next->prev = prev;
+
+				free(tac);
+				tac = next;
+				c++;
+			}
+		}
+	}
+	return c;
+}
+
 void makeASM(TAC *tac){
 	data = (char*) malloc(MAXSIZE);
 	prog = (char*) malloc(MAXSIZE);
 
 	data[0] = 0;
 	prog[0] = 0;
+
+	int c;
+	do{
+		c = 0;
+		c += deadStoreElimination(tac);
+		c += deadJumpElimination(tac);
+	} while(c > 0);
 
 	for(tac = first(tac); tac != NULL; tac = tac->next){
 		switch(tac->type){

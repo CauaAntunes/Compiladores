@@ -11,11 +11,20 @@ d: byte 65;
 
 long main()
   {
+a = v[i] + d / c;
   a = 5;
   for (i = 1 to 9){
-	v#i = v[i-1] * i;
-    print i " " i-1 " " 1-i " " a-i " " i-a " " v[i] "\n";
-};
+    v#i = v[i-1] * i;
+    print i " " v[i] "\n";
+  };
+  print "*****\n";
+  for (i = 1 to 9){
+    v#i = v[i] / i;
+    print i " " v[i] "\n";
+  };
+  for (i = 1 to 9);
+  for (i = 6 to 1);
+  print i "\n";
 
   print " Digite um numero: \n";
   read i;
@@ -30,7 +39,14 @@ long main()
     print "Parou no meio\n";
   when (a<=11) then
     ;
-  when (a!=11) then else
+  when (a!=11) then {
+  } else {
+    print "É 11\n";
+  };
+  when (a!=11) then {
+    print "Não 11\n";
+  } else {
+  }
     ;
   ;;;
   {;};
@@ -38,7 +54,6 @@ long main()
   };
 
 long incn (long x, long n){
-print x " " n "\n";
   return x+n;
 };
 
