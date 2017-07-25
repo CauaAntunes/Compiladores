@@ -355,7 +355,7 @@ TAC *createTACFor(AST *tree){
 		TAC *movl = createTAC(TAC_MOV, var, max, NULL);
 		
  		return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(cmp, jge), mov), jmp), lbgn), movl), lend);
-	}else{
+	} else {
 		TAC *mov = createTAC(TAC_MOV, var->op_keys[0], init->op_keys[0],NULL);
 		TAC *check = createTAC(TAC_CMP, max->op_keys[0], var->op_keys[0], NULL);
 		TAC *jend = createTAC(TAC_JGE, end, NULL, NULL);
