@@ -342,19 +342,39 @@ TAC *createTACFor(AST *tree){
 	TAC *var = makeTAC(tree->son[0]);
 	TAC *init = makeTAC(tree->son[1]);
 	TAC *max = makeTAC(tree->son[2]);
+
 	char *begin = makeLabel();
 	char *end = makeLabel();
 	TAC *lend = createTACLabel(end);
 	TAC *lbgn = createTACLabel(begin);
 	if (tree->son[3] == NULL){
-		TAC *cmp  = createTAC(TAC_CMP, init->op_keys[0], max->op_keys[0], NULL);
-		TAC *jge = createTAC(TAC_JGE, begin, NULL, NULL);
-		TAC *mov = createTAC(TAC_MOV, var->op_keys[0], init->op_keys[0], NULL);
-		TAC *jmp = createTAC(TAC_JMP, end, NULL, NULL); 
-		// entre -> lbgn
-		TAC *movl = createTAC(TAC_MOV, var->op_keys[0], max->op_keys[0], NULL);
-		
- 		return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(cmp, jge), mov), jmp), lbgn), movl), lend);
+		if(init->type == TAC_SYMBOL && (init->op_keys[0][0] == '\'' || ( init->op_keys[0][0] <='9' && init->op_keys[0][0] >= '0')) &&
+		   max->type == TAC_SYMBOL && (max->op_keys[0][0] == '\'' || ( max->op_keys[0][0] <='9' && max->op_keys[0][0] >= '0'))){
+			int x0, x1;
+			if (init->op_keys[0][0] == '\'')
+				x0 = init->op_keys[0][1];
+			else
+				x0 = atoi(init->op_keys[0]);
+			if (max->op_keys[0][0] == '\'')
+				x1 = max->op_keys[0][1];
+			else
+				x1 = atoi(max->op_keys[0]);
+
+			if(x0 > x1){
+				return createTAC(TAC_MOV, var->op_keys[0], init->op_keys[0], NULL);
+			} else {
+				return createTAC(TAC_MOV, var->op_keys[0], max->op_keys[0], NULL);
+			}
+		} else {
+			TAC *cmp  = createTAC(TAC_CMP, init->op_keys[0], max->op_keys[0], NULL);
+			TAC *jge = createTAC(TAC_JGE, begin, NULL, NULL);
+			TAC *mov = createTAC(TAC_MOV, var->op_keys[0], init->op_keys[0], NULL);
+			TAC *jmp = createTAC(TAC_JMP, end, NULL, NULL); 
+			// entre -> lbgn
+			TAC *movl = createTAC(TAC_MOV, var->op_keys[0], max->op_keys[0], NULL);
+	
+	 		return joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(joinTAC(var,init), max), cmp), jge), mov), jmp), lbgn), movl), lend);
+		}
 	} else {
 		TAC *mov = createTAC(TAC_MOV, var->op_keys[0], init->op_keys[0],NULL);
 		TAC *check = createTAC(TAC_CMP, max->op_keys[0], var->op_keys[0], NULL);

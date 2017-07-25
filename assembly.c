@@ -920,7 +920,7 @@ int deadJumpElimination(TAC *tac){
 	return c;
 }
 
-void makeASM(TAC *tac){
+void makeASM(TAC *tac, FILE *out){
 	data = (char*) malloc(MAXSIZE);
 	prog = (char*) malloc(MAXSIZE);
 
@@ -1015,17 +1015,9 @@ void makeASM(TAC *tac){
 
 			default: break;
 		}
-		/*printf("%s",data);
-		data[0] = 0;
-		printf("%s",prog);
-		prog[0] = 0;
-		int i;
-		for(i = 0; i < 4; i++)
-			if(regs[i] != NULL)
-			printf("%%e%cx: %s\n",'a'+i,regs[i]);*/
 	}
 	memTemp();
-	printf("\t.data\n%s.str0:\n\t.string\t\"%%d\"\n", data);
-	printf("%s", prog);
+	fprintf(out,"\t.data\n%s.str0:\n\t.string\t\"%%d\"\n", data);
+	fprintf(out,"%s", prog);
 }
 

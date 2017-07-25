@@ -11,8 +11,8 @@ d: byte 65;
 
 long main()
   {
-a = v[i] + d / c;
-  a = 5;
+  a = v[i] + d / c;
+  a = 1 + 1 + 1 + 1 + 1;
   for (i = 1 to 9){
     v#i = v[i-1] * i;
     print i " " v[i] "\n";
@@ -23,7 +23,7 @@ a = v[i] + d / c;
     print i " " v[i] "\n";
   };
   for (i = 1 to 9);
-i = 10;
+  i = 10;
   for (i = 6 to 1);
   print i "\n";
 

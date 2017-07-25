@@ -1,7 +1,7 @@
 // Cauã Antunes e Gabriela Pagnoncelli
 
 int main(int argc, char **argv) {
-	if (argc < 2) {
+	if (argc < 3) {
 		printf( "Invalid number of arguments.\n" );
 		return 1;
 	} else {
@@ -13,11 +13,13 @@ int main(int argc, char **argv) {
 		}
 
 		initMe();
-		yyparse();
+		if(yyparse() != 0) return 3;
 		checkDeclarations(ASTree);
 		TAC *TACList = makeTAC(ASTree);
 		//printTAC(TACList);
-		makeASM(TACList);
+
+		FILE *fout = fopen(argv[2], "w");
+		makeASM(TACList, fout);
 		return 0;
 	}
 }
