@@ -32,7 +32,7 @@ void initMe(){
 
 void yyerror (char const *s) {
 	fprintf (stderr, "Line %d: %s\n",getLineNumber(), s);
-	exit(3);
+	//exit(3);
 }
 %}
 

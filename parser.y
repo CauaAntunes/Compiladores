@@ -44,13 +44,13 @@ AST* create(int type, char* key, AST* son0, AST* son1, AST* son2, AST* son3){
 %token OPERATOR_AND
 %token OPERATOR_OR
 
+%token TOKEN_ERROR
+
 %token <symbol> TK_IDENTIFIER
 %token <symbol> LIT_INTEGER
 %token <symbol> LIT_REAL
 %token <symbol> LIT_CHAR
 %token <symbol> LIT_STRING
-
-%token TOKEN_ERROR
 
 %token VDEF
 %token FDEF
@@ -70,6 +70,8 @@ code		: program		{$$ = $1; ASTree = $$;}
 		;
 program		: def ';' program	{$$ = create(';',0,$1,$3,0,0);}
 		| def ';'		{$$ = create(';',0,$1,0,0,0);}
+		| panicmode program	{$$ = $2;}
+		| panicmode 		{$$ = 0;}
 		;
 def		: var
 		| func
@@ -113,6 +115,8 @@ cmdblock	: '{' cmdlist '}' 	{$$ = create('{',0,$2,0,0,0);}
 		;
 cmdlist		: cmd ';' cmdlist	{$$ = create(';',0,$1,$3,0,0);}
 		| cmd ';'		{$$ = create(';',0,$1,0,0,0);}
+		| panicmode cmdlist	{$$ = $2;}
+		| panicmode 		{$$ = 0;}
 		;
 cmd		: cmdblock
 		| id '=' exp						{$$ = create ('=',0,$1,$3,0,0);}
@@ -150,9 +154,14 @@ exp		: exp '+' exp				{$$ = create('+',0,$1,$3,0,0);}
 		| exp OPERATOR_OR exp			{$$ = create(OPERATOR_OR,0,$1,$3,0,0);}
 		| litinit
 		| '(' exp ')'				{$$ = create('(',0,$2,0,0,0);}
+		;
+panicmode:	error ';'				{yyerrok;}
 		;	
 
 %%
+
+
+
 /*
 void print(FILE *f,AST *tree)
 {
